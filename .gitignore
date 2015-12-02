@@ -4,3 +4,12 @@
 .project
 src/com/polaris/steve/
 resources/
+*.class
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
