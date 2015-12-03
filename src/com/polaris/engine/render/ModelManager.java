@@ -1,5 +1,11 @@
 package com.polaris.engine.render;
 
-public class ModelManager {
+import java.util.HashMap;
+import java.util.Map;
+
+public class ModelManager 
+{
+	
+	private Map<String, IModel> textureMap = new HashMap<String, IModel>();
 
 }

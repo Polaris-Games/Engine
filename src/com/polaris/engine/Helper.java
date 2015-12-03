@@ -32,7 +32,13 @@ public class Helper
 	 * @value windows, linux, osx
 	 */
 	public static final String osName;
+	/**
+	 * Pi * 2
+	 */
 	public static final double TWOPI = Math.PI * 2;
+	/**
+	 * PI / 2
+	 */
 	public static final double HALFPI = Math.PI / 2;
 
 	static

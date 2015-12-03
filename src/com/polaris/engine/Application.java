@@ -56,6 +56,9 @@ import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.glfw.GLFWvidmode;
 import org.lwjgl.opengl.GL;
 
+import com.polaris.engine.render.ModelManager;
+import com.polaris.engine.render.TextureManager;
+
 public abstract class Application extends Thread
 {
 
@@ -91,6 +94,22 @@ public abstract class Application extends Thread
 	 * Instance version of the application's mouse position
 	 */
 	protected double mouseY;
+	
+	private static ThreadLocal<TextureManager> textureManagers = new ThreadLocal<TextureManager>() {
+		public TextureManager initialValue()
+		{
+			return null;
+		}
+	};
+	protected TextureManager textureManager;
+	
+	private static ThreadLocal<ModelManager> modelManagers = new ThreadLocal<ModelManager>() {
+		public ModelManager initialValue()
+		{
+			return null;
+		}
+	};
+	protected ModelManager modelManager;
 
 	private GLFWCursorEnterCallback cursorBounds = new GLFWCursorEnterCallback () {
 
@@ -188,6 +207,9 @@ public abstract class Application extends Thread
 		init();
 
 		GL.createCapabilities();
+		textureManager = new TextureManager();
+		modelManager = new ModelManager();
+		
 		glDefaults();
 		glfwSetTime(0);
 		while(glfwWindowShouldClose(windowInstance) == 0 && isRunning)
