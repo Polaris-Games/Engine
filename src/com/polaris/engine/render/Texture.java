@@ -1,36 +1,13 @@
 package com.polaris.engine.render;
 
-public class Texture implements ITexture
+public class Texture
 {
-
-	@Override
-	public String getTitle()
-	{
-		return null;
-	}
-
-	@Override
-	public void load() 
+	
+	private float minU, minV, maxU, maxV;
+	
+	public Texture()
 	{
 		
-	}
-
-	@Override
-	public void unload()
-	{
-		
-	}
-
-	@Override
-	public void setCurrent()
-	{
-		
-	}
-
-	@Override
-	public boolean stitch() 
-	{
-		return true;
 	}
 
 }

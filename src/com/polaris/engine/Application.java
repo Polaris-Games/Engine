@@ -1,8 +1,8 @@
 package com.polaris.engine;
 
-import static com.polaris.engine.Renderer.glClearBuffers;
-import static com.polaris.engine.Renderer.glDefaults;
-import static com.polaris.engine.Renderer.updateSize;
+import static com.polaris.engine.render.Renderer.glClearBuffers;
+import static com.polaris.engine.render.Renderer.glDefaults;
+import static com.polaris.engine.render.Renderer.updateSize;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 import static org.lwjgl.glfw.GLFW.GLFW_REPEAT;
@@ -94,21 +94,15 @@ public abstract class Application extends Thread
 	 * Instance version of the application's mouse position
 	 */
 	protected double mouseY;
-	
+
 	private static ThreadLocal<TextureManager> textureManagers = new ThreadLocal<TextureManager>() {
 		public TextureManager initialValue()
 		{
 			return null;
 		}
 	};
+
 	protected TextureManager textureManager;
-	
-	private static ThreadLocal<ModelManager> modelManagers = new ThreadLocal<ModelManager>() {
-		public ModelManager initialValue()
-		{
-			return null;
-		}
-	};
 	protected ModelManager modelManager;
 
 	private GLFWCursorEnterCallback cursorBounds = new GLFWCursorEnterCallback () {
@@ -201,15 +195,24 @@ public abstract class Application extends Thread
 	{
 		DoubleBuffer mouseBufferX = DoubleBuffer.allocate(1);
 		DoubleBuffer mouseBufferY = DoubleBuffer.allocate(1);
-		
+
 		if(glfwInit() == 0 || !setupWindow())
 			return;
 		init();
 
 		GL.createCapabilities();
-		textureManager = new TextureManager();
-		modelManager = new ModelManager();
-		
+		try
+		{
+			textureManager = new TextureManager(getResourceLocation());
+			modelManager = new ModelManager(getResourceLocation());
+			textureManagers.set(textureManager);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return;
+		}
+
 		glDefaults();
 		glfwSetTime(0);
 		while(glfwWindowShouldClose(windowInstance) == 0 && isRunning)
@@ -223,7 +226,7 @@ public abstract class Application extends Thread
 				if(!setupWindow())
 					return;
 			}
-			
+
 			glfwGetCursorPos(Application.getInstance(), mouseBufferX, mouseBufferY);
 			mouseX = mouseBufferX.get();
 			mouseY = mouseBufferY.get();
@@ -495,6 +498,11 @@ public abstract class Application extends Thread
 	 */
 	protected abstract long createWindow();
 
+	protected String getResourceLocation()
+	{
+		return "resources";
+	}
+
 	/**
 	 * Set hints to window and others mostly not used with this method
 	 * @param target <br><b>WINDOW</b>
@@ -552,6 +560,11 @@ public abstract class Application extends Thread
 		return mouseY;
 	}
 
+	public TextureManager getTextureManager()
+	{
+		return textureManager;
+	}
+
 	/**
 	 * Thread specific version of the application's window instance.
 	 * <br><b>ONLY WORKS WITH MAIN THREAD, OTHERWISE REROUTE TO INSTANCE VERSION</b>
@@ -580,6 +593,11 @@ public abstract class Application extends Thread
 	public static double getMouseY()
 	{
 		return mousePositionY.get();
+	}
+
+	public static TextureManager getTexture()
+	{
+		return textureManagers.get();
 	}
 
 }

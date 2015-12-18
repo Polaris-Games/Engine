@@ -1,4 +1,4 @@
-package com.polaris.engine;
+package com.polaris.engine.render;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,7 +12,9 @@ import javax.imageio.ImageIO;
 
 import org.lwjgl.opengl.GL11;
 
-import static com.polaris.engine.Renderer.*;
+import com.polaris.engine.Helper;
+
+import static com.polaris.engine.render.Renderer.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class ObjModel 
@@ -36,7 +38,7 @@ public class ObjModel
 		{
 			e.printStackTrace();
 		}
-		textureId = createTextureId("model_" + name, false);
+		//textureId = createTextureId("model_" + name, false);
 	}
 
 	public ObjModel(String url, String textureUrl) throws IOException
@@ -47,14 +49,14 @@ public class ObjModel
 		reader.close();
 		connection.disconnect();
 		connection = (HttpURLConnection) new URL(textureUrl).openConnection();
-		textureId = createTextureId(textureUrl, ImageIO.read(connection.getInputStream()), false);
+		//textureId = createTextureId(textureUrl, ImageIO.read(connection.getInputStream()), false);
 		connection.disconnect();
 	}
 
 	public void render(double x, double y, double z, double rotationX, double rotationY, double rotationZ)
 	{
 		glPushMatrix();
-		glBind(textureId);
+		//glBind(textureId);
 		glTranslated(x, y, z);
 		glRotated(rotationX, 1, 0, 0);
 		glRotated(rotationY, 0, 1, 0);
@@ -80,7 +82,7 @@ public class ObjModel
 
 	public void destroy()
 	{
-		glClearTexture(textureId);
+		//glClearTexture(textureId);
 	}
 
 	private void loadPolygons(BufferedReader reader) throws IOException

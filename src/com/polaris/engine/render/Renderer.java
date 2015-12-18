@@ -1,27 +1,78 @@
-package com.polaris.engine;
+package com.polaris.engine.render;
 
 import static com.polaris.engine.Helper.TWOPI;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
-import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
+import static org.lwjgl.opengl.GL11.GL_ALPHA_TEST;
+import static org.lwjgl.opengl.GL11.GL_BACK;
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
+import static org.lwjgl.opengl.GL11.GL_DITHER;
+import static org.lwjgl.opengl.GL11.GL_GREATER;
+import static org.lwjgl.opengl.GL11.GL_LEQUAL;
+import static org.lwjgl.opengl.GL11.GL_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_LINEAR_MIPMAP_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
+import static org.lwjgl.opengl.GL11.GL_NICEST;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_PERSPECTIVE_CORRECTION_HINT;
+import static org.lwjgl.opengl.GL11.GL_PROJECTION;
+import static org.lwjgl.opengl.GL11.GL_QUADS;
+import static org.lwjgl.opengl.GL11.GL_REPEAT;
+import static org.lwjgl.opengl.GL11.GL_RGBA;
+import static org.lwjgl.opengl.GL11.GL_RGBA8;
+import static org.lwjgl.opengl.GL11.GL_SMOOTH;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_STENCIL_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLE_FAN;
+import static org.lwjgl.opengl.GL11.GL_UNPACK_ALIGNMENT;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
+import static org.lwjgl.opengl.GL11.glAlphaFunc;
+import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
+import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glClearDepth;
+import static org.lwjgl.opengl.GL11.glClearStencil;
+import static org.lwjgl.opengl.GL11.glColor3f;
+import static org.lwjgl.opengl.GL11.glColor4d;
+import static org.lwjgl.opengl.GL11.glCullFace;
+import static org.lwjgl.opengl.GL11.glDepthFunc;
+import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glGenTextures;
+import static org.lwjgl.opengl.GL11.glHint;
+import static org.lwjgl.opengl.GL11.glLoadIdentity;
+import static org.lwjgl.opengl.GL11.glMatrixMode;
+import static org.lwjgl.opengl.GL11.glOrtho;
+import static org.lwjgl.opengl.GL11.glPixelStorei;
+import static org.lwjgl.opengl.GL11.glShadeModel;
+import static org.lwjgl.opengl.GL11.glTexCoord2d;
+import static org.lwjgl.opengl.GL11.glTexParameteri;
+import static org.lwjgl.opengl.GL11.glTexSubImage2D;
+import static org.lwjgl.opengl.GL11.glVertex2d;
+import static org.lwjgl.opengl.GL11.glVertex3d;
+import static org.lwjgl.opengl.GL11.glViewport;
 
-import java.awt.Window;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.imageio.ImageIO;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.opengl.ARBFramebufferObject;
 import org.lwjgl.opengl.ARBTextureStorage;
 import org.lwjgl.opengl.GL11;
+
+import com.polaris.engine.Application;
 
 public class Renderer 
 {
@@ -43,18 +94,6 @@ public class Renderer
 			return 0D;
 		}
 	};
-	private static ThreadLocal<Map<String, Integer>> textureList = new ThreadLocal<Map<String, Integer>> () {
-		public Map<String, Integer> initialValue()
-		{
-			return new HashMap<String, Integer>();
-		}
-	};
-	private static ThreadLocal<Integer> currentTexture = new ThreadLocal<Integer> () {
-		public Integer initialValue()
-		{
-			return -1;
-		}
-	};
 	private static ThreadLocal<Color4d> currentColor = new ThreadLocal<Color4d> () {
 		public Color4d initialValue()
 		{
@@ -72,21 +111,7 @@ public class Renderer
 		windowRatio.set(windowWidth.get() / (double) windowHeight.get());
 	}
 
-	public static int createTextureId(String filename, boolean mipmap)
-	{
-		BufferedImage image = null;
-		try
-		{
-			image = ImageIO.read(Helper.getResourceStream("textures/" + filename + (filename.lastIndexOf('.') == -1 ? ".png" : "")));
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
-		return createTextureId(filename, image, mipmap);
-	}
-
-	public static int createTextureId(String s, BufferedImage image, boolean mipmap)
+	public static int createTextureId(BufferedImage image, boolean mipmap)
 	{
 		if(image != null)
 		{
@@ -124,7 +149,6 @@ public class Renderer
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			}
-			textureList.get().put(s, texture);
 			return texture;
 		}
 		return -100;
@@ -149,103 +173,15 @@ public class Renderer
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 	}
-
-	public static boolean glBind(int texId)
+	
+	public static boolean glBind(String textureId)
 	{
-		if(texId != currentTexture.get())
-		{
-			glBindTexture(GL_TEXTURE_2D, texId);
-			currentTexture.set(texId);
-			return true;
-		}
-		return false;
+		return Application.getTexture().bindTexture(textureId);
 	}
-
-	/**
-	 * Binds the current OpenGl texture to be the [String:texture] and if it isn't cached already it will be cached
-	 * @param texture : The texture to be bound
-	 * @return Whether it was successfully bound or not
-	 */
-	public static boolean glBind(String texture)
+	
+	public static boolean glClearTexture(String textureId)
 	{
-		int texId = textureList.get().containsKey(texture) ? textureList.get().get(texture) : createTextureId(texture, true);
-		if(texId != -100 && texId != currentTexture.get())
-		{
-			glBindTexture(GL_TEXTURE_2D, texId);
-			currentTexture.set(texId);
-			return true;
-		}
-		return false;
-	}
-
-	public static boolean glBind(String texture, boolean mipmap)
-	{
-		int texId = textureList.get().containsKey(texture) ? textureList.get().get(texture) : createTextureId(texture, mipmap);
-		if(texId != -100 && texId != currentTexture.get())
-		{
-			glBindTexture(GL_TEXTURE_2D, texId);
-			currentTexture.set(texId);
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Binds the current OpenGl texture to be the [String:textureName] from the cached and if non existent then it will generate
-	 * the texture under the [BufferedImage:texture]
-	 * @param name : The name in the cache to be bound
-	 * @param texture : the BufferedImage to add to cache in case not there
-	 * @return Whether it was successfully bound or not
-	 */
-	public static boolean glBind(String name, BufferedImage texture)
-	{
-		int texId = textureList.get().containsKey(name) ? textureList.get().get(name) : createTextureId(name, texture, true);
-		if(texId != -100 && texId != currentTexture.get())
-		{
-			glBindTexture(GL_TEXTURE_2D, texId);
-			currentTexture.set(texId);
-			return true;
-		}
-		return false;
-	}
-
-	public static boolean glBind(String name, BufferedImage texture, boolean mipmap)
-	{
-		glEnable(GL_TEXTURE_2D);
-		int texId = textureList.get().containsKey(name) ? textureList.get().get(name) : createTextureId(name, texture, mipmap);
-		if(texId != -100 && texId != currentTexture.get())
-		{
-			glBindTexture(GL_TEXTURE_2D, texId);
-			currentTexture.set(texId);
-			return true;
-		}
-		return false;
-	}
-
-	public static boolean glClearTexture(String texture)
-	{
-		if(textureList.get().containsKey(texture))
-		{
-			GL11.glDeleteTextures(textureList.get().get(texture));
-			textureList.get().remove(texture);
-			return true;
-		}
-		return false;
-	}
-
-	public static boolean glClearTexture(int textureId)
-	{
-		boolean found = false;
-		for(String textureName : textureList.get().keySet())
-		{
-			if(textureList.get().get(textureName) == textureId)
-			{
-				found = true;
-				textureList.get().remove(textureName);
-				break;
-			}
-		}
-		return found;
+		return Application.getTexture().clearTexture(textureId);
 	}
 
 	public static void glEnableText()

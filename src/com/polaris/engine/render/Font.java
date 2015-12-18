@@ -1,6 +1,6 @@
-package com.polaris.engine;
+package com.polaris.engine.render;
 
-import static com.polaris.engine.Renderer.*;
+import static com.polaris.engine.render.Renderer.*;
 import static org.lwjgl.opengl.GL11.glEnd;
 
 import java.awt.image.BufferedImage;
@@ -19,6 +19,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.polaris.engine.Helper;
 
 public class Font
 {
@@ -181,7 +183,7 @@ public class Font
 			x1 = x - getTextWidth(text) * widthScale;
 		}
 		
-		glBind(textureId);
+		//glBind(textureId);
 		glBegin();
 		for(i = 0; i < text.length(); i++)
 		{
@@ -249,7 +251,7 @@ public class Font
 			BufferedImage image = ImageIO.read(textureStream);
 			textureWidth = image.getWidth();
 			textureHeight = image.getHeight();
-			textureId = createTextureId(getTextureName(), image, false);
+			//textureId = createTextureId(getTextureName(), image, false);
 		} 
 		catch (IOException e) 
 		{
@@ -269,7 +271,7 @@ public class Font
 	
 	public void destroy()
 	{
-		glClearTexture(textureId);
+		//glClearTexture(textureId);
 	}
 
 	protected class IntObject
