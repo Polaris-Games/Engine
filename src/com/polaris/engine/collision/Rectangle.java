@@ -1,6 +1,6 @@
 package com.polaris.engine.collision;
 
-import static com.polaris.engine.Helper.*;
+import static com.polaris.engine.util.Helper.*;
 import static java.lang.Math.*;
 import com.polaris.engine.Pos;
 

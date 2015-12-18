@@ -1,6 +1,6 @@
 package com.polaris.engine.element;
 
-import com.polaris.engine.Helper;
+import com.polaris.engine.util.Helper;
 
 public abstract class MultiButton extends Button
 {

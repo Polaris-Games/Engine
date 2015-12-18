@@ -1,6 +1,6 @@
 package com.polaris.engine;
 
-import static com.polaris.engine.Helper.isEqual;
+import static com.polaris.engine.util.Helper.isEqual;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ import com.polaris.engine.Pos.PosPhysics;
 import com.polaris.engine.collision.MTV;
 import com.polaris.engine.collision.Projection;
 import com.polaris.engine.collision.Shape;
+import com.polaris.engine.util.Helper;
 import com.polaris.steve.Steve;
 
 public class PhysicsEngine 

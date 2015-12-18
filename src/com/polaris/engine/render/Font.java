@@ -20,7 +20,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.polaris.engine.Helper;
+import com.polaris.engine.util.Helper;
 
 public class Font
 {

@@ -12,7 +12,7 @@ import javax.imageio.ImageIO;
 
 import org.lwjgl.opengl.GL11;
 
-import com.polaris.engine.Helper;
+import com.polaris.engine.util.Helper;
 
 import static com.polaris.engine.render.Renderer.*;
 import static org.lwjgl.opengl.GL11.*;

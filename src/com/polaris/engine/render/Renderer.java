@@ -1,6 +1,6 @@
 package com.polaris.engine.render;
 
-import static com.polaris.engine.Helper.TWOPI;
+import static com.polaris.engine.util.Helper.TWOPI;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;

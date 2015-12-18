@@ -1,4 +1,4 @@
-package com.polaris.engine;
+package com.polaris.engine.util;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
@@ -468,6 +468,11 @@ public class Helper
 	public static double rotate(double x, double y, double axis) 
 	{
 		return x * Math.cos(axis) + y * Math.sin(axis);
+	}
+	
+	public static double log(double base, double value)
+	{
+		return Math.log(value) / Math.log(base);
 	}
 
 }
