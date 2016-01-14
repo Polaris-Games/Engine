@@ -1,289 +1,253 @@
 package com.polaris.engine.render;
 
-import static com.polaris.engine.render.Renderer.*;
+import static com.polaris.engine.render.Renderer.drawColorHRectUV;
+import static com.polaris.engine.render.Renderer.drawRectUV;
+import static com.polaris.engine.render.Renderer.getAlpha;
+import static com.polaris.engine.render.Renderer.getBlue;
+import static com.polaris.engine.render.Renderer.getGreen;
+import static com.polaris.engine.render.Renderer.getRed;
+import static com.polaris.engine.render.Renderer.glBegin;
 import static org.lwjgl.opengl.GL11.glEnd;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
-import javax.imageio.ImageIO;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import com.polaris.engine.util.Helper;
+import com.polaris.engine.render.FontMap.IntObject;
 
 public class Font
 {
-
-	public static final byte FONT_ALIGN_CENTER = 0b00000001;
-	public static final byte FONT_ALIGN_RIGHT = 0b00000010;
-	public static final byte FONT_FIT_TO_REGION = 0b00000100;
-	public static final byte FONT_LIFT_TEXT = 0b00001000;
-	public static final byte FONT_SCALE = 0b00010000;
-	public static final byte FONT_SHIFT_COLOR = 0b00100000;
-	public static final byte FONT_SPLIT = 0b01000000;
-
-	private IntObject[] charArray = new IntObject[256];
-	private String fontName = "";
-	private int textureId = 0;
-	private int textureWidth = 0;
-	private int textureHeight = 0;
-
-	public Font() {}
-
-	protected Font(IntObject[] charArray, String name)
+	
+	private FontMap fontTexture;
+	
+	public Font(FontMap fontMap)
 	{
-		this.charArray = charArray;
-		fontName = name;
-		loadTexture(Helper.getResourceStream("fonts/" + name + ".png"));
+		fontTexture = fontMap;
 	}
-
-	public void initialize(String name)
+	
+	public void bindFont()
 	{
-		try 
-		{
-			fontName = name;
-			initialize(Helper.getResourceStream("fonts/" + name + ".png"), Helper.getResourceStream("fonts/" + name + ".fnt"));
-		}
-		catch (IOException | SAXException | ParserConfigurationException e) 
-		{
-			e.printStackTrace();
-		}
-	}
-
-	public void initialize(String textureUrl, String fontUrl) throws IOException
-	{
-		HttpURLConnection textureConnection = (HttpURLConnection) new URL(textureUrl).openConnection();
-		HttpURLConnection fontConnection = (HttpURLConnection) new URL(fontUrl).openConnection();
-		textureConnection.connect();
-		fontConnection.connect();
-		try
-		{
-			initialize(textureConnection.getInputStream(), fontConnection.getInputStream());
-			textureConnection.disconnect();
-			fontConnection.disconnect();
-		}
-		catch(SAXException | ParserConfigurationException e)
-		{
-			textureConnection.disconnect();
-			fontConnection.disconnect();
-			e.printStackTrace();
-		}
-	}
-
-	private void initialize(InputStream textureStream, InputStream xmlStream) throws ParserConfigurationException, SAXException, IOException
-	{
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-		Document doc = dBuilder.parse(xmlStream);
-
-		Element fontNode = (Element) doc.getElementsByTagName("font").item(0);
-		fontName = fontNode.getAttribute("id");
-		loadTexture(textureStream);
-
-		NodeList list = fontNode.getChildNodes();
-
-		for(int i = 0; i < list.getLength(); i++)
-		{
-			Node n = list.item(i);
-
-			if(n.getNodeType() == Node.ELEMENT_NODE)
-			{
-				Element e = (Element) n;
-				short id = (short) Integer.parseInt(e.getAttribute("id"));
-				charArray[id] = new IntObject();
-				charArray[id].width = Short.parseShort(e.getAttribute("xadvance"));
-				charArray[id].height = (short) (Short.parseShort(e.getAttribute("height")) + Short.parseShort(e.getAttribute("yoffset")));
-				charArray[id].offsetX = (short) (Short.parseShort(e.getAttribute("xoffset")));
-				charArray[id].offsetY = (short) (Short.parseShort(e.getAttribute("yoffset")));
-				charArray[id].storedX = Integer.parseInt(e.getAttribute("x")) / (float)getTextureWidth();
-				charArray[id].storedY = Integer.parseInt(e.getAttribute("y")) / (float)getTextureHeight();
-				charArray[id].storedX1 = charArray[id].storedX + (Integer.parseInt(e.getAttribute("width")) / (float) getTextureWidth());
-				charArray[id].storedY1 = charArray[id].storedY + (Integer.parseInt(e.getAttribute("height")) / (float) getTextureHeight());
-			}
-		}
-	}
-
-	public void drawString(String text, double x, double y, double z)
-	{
-		drawString(text, x, y, z, 0);
+		
 	}
 
 	/**
-	 * The most complicated 
-	 * @param text
-	 * @param x
-	 * @param y
-	 * @param z
-	 * @param modifiers
-	 * @param modObjects
+	 * Simple form of drawing a string, no manipulators, will draw left->right
+	 * @param whatchars : contains the content to be written
+	 * @param x : x-position on screen to draw string on
+	 * @param y : y-position on screen to draw string on
+	 * @param z : z-level
+	 * @param pointFont : size of the string to be drawn
 	 */
-	public void drawString(String text, double x, double y, double z, int modifiers, Object ... modObjects)
+	public void drawString(CharSequence whatchars, double x, double y, double z, double pointFont)
 	{
-		IntObject intObject;
-		short i;
-		short letter;
-		double x1 = x;
-		double y1 = y;
-		byte opDefines = 0;
-		double widthScale = 1;
-		double heightScale = 1;
+		drawCharacters(whatchars, x, y, z, pointFont);
+	}
 
-		//FIT TO REGION
-		if(((modifiers >> 2) & 1) == 1)
+	/**
+	 * Align the drawing of a string, manipulator of alignment
+	 * @param whatchars : contains the content to be written
+	 * @param x : x-position on screen to draw string on
+	 * @param y : y-position on screen to draw string on
+	 * @param z : z-level
+	 * @param pointFont : size of the string to be drawn
+	 * @param alignment : 0->left, 1->center, 2->right alignment of string relative to x
+	 */
+	public void drawAlignedString(CharSequence whatchars, double x, double y, double z, double pointFont, int alignment)
+	{
+		switch(alignment)
 		{
-			widthScale = (double) modObjects[opDefines] / (double) getTextWidth(text);
-			opDefines++;
-			heightScale = (double) modObjects[opDefines] / (double) getHeight(text);
-			opDefines++;
-			widthScale = heightScale = Math.min(widthScale, heightScale);
+		case 1:
+			x = x - getTextWidth(whatchars, pointFont) / 2;
+			break;
+		case 2:
+			x = x - getTextWidth(whatchars, pointFont);
+			break;
 		}
-		//LIFT TEXT
-		if(((modifiers >> 3) & 1) == 1)
+		drawCharacters(whatchars, x, y, z, pointFont);
+	}
+	
+	/**
+	 * Draw string with maximum bounds, stretching or compressing if necessary
+	 * @param whatchars : contains the content to be written
+	 * @param x : x-position on screen to draw string on
+	 * @param y : y-position on screen to draw string on
+	 * @param z : z-level
+	 * @param width : maximum width the string can be
+	 * @param height : maximum height the string can be
+	 */
+	public void drawFittedString(CharSequence whatchars, double x, double y, double z, double width, double height)
+	{
+		drawCharacters(whatchars, x, y, z, Math.min(height / getTextHeight(whatchars), width / getTextWidth(whatchars)));
+	}
+	
+	/**
+	 * Draw string with maximum bounds, stretching or compressing if necessary
+	 * @param whatchars : contains the content to be written
+	 * @param x : x-position on screen to draw string on
+	 * @param y : y-position on screen to draw string on
+	 * @param z : z-level
+	 * @param alignment : 0->left, 1->center, 2->right alignment of string relative to x
+	 * @param width : maximum width the string can be
+	 * @param height : maximum height the string can be
+	 */
+	public void drawAlignedFittedString(CharSequence whatchars, double x, double y, double z, int alignment, double width, double height)
+	{
+		double pointFont = Math.min(height / getTextHeight(whatchars), width / getTextWidth(whatchars));
+		switch(alignment)
 		{
-
+		case 1:
+			x = x - getTextWidth(whatchars, pointFont) / 2;
+			break;
+		case 2:
+			x = x - getTextWidth(whatchars, pointFont);
+			break;
 		}
-		//SCALE
-		if(((modifiers >> 4) & 1) == 1)
+		drawCharacters(whatchars, x, y, z, pointFont);
+	}
+	
+	/**
+	 * Draw a color shifted string from left->right color shifting
+	 * @param whatchars : contains the content to be written
+	 * @param x : x-position on screen to draw string on
+	 * @param y : y-position on screen to draw string on
+	 * @param z : z-level
+	 * @param pointFont : size of the string to be drawn
+	 * @param shiftToColor : ending color on the right
+	 */
+	public void drawColorHString(CharSequence whatchars, double x, double y, double z, double pointFont, Color4d shiftToColor)
+	{
+		drawCharacters(whatchars, x, y, z, pointFont, shiftToColor);
+	}
+	
+	public void drawAlignedCHString(CharSequence whatchars, double x, double y, double z, double pointFont, int alignment, Color4d shiftToColor)
+	{
+		switch(alignment)
 		{
-			widthScale = Math.min((double) modObjects[opDefines], widthScale);
-			opDefines++;
-			heightScale = Math.min((double) modObjects[opDefines], heightScale);
-			opDefines++;
+		case 1:
+			x = x - getTextWidth(whatchars, pointFont) / 2;
+			break;
+		case 2:
+			x = x - getTextWidth(whatchars, pointFont);
+			break;
 		}
-		//SHIFT COLOR
-		if(((modifiers >> 5) & 1) == 1)
+		drawCharacters(whatchars, x, y, z, pointFont, shiftToColor);
+	}
+	
+	public void drawAlignedFCHString(CharSequence whatchars, double x, double y, double z, int alignment, double width, double height, Color4d shiftToColor)
+	{
+		double pointFont = Math.min(height / getTextHeight(whatchars), width / getTextWidth(whatchars));
+		switch(alignment)
 		{
-			
+		case 1:
+			x = x - getTextWidth(whatchars, pointFont) / 2;
+			break;
+		case 2:
+			x = x - getTextWidth(whatchars, pointFont);
+			break;
 		}
-		//SPLIT
-		if(((modifiers >> 6) & 1) == 1)
+		drawCharacters(whatchars, x, y, z, pointFont, shiftToColor);
+	}
+	
+	public void drawLineString(CharSequence whatchars, double x, double y, double z, double pointFont, Line line)
+	{
+		IntObject object;
+		for(int i = 0; i < whatchars.length(); i++)
 		{
-			
-		}
-		//CENTER
-		if((modifiers & 1) == 1)
-		{
-			x1 = x - (getTextWidth(text) / 2) * widthScale;
-			y1 = y - (getHeight(text) / 2) * heightScale;
-		}
-		//ALIGN RIGHT
-		else if(((modifiers >> 1) & 1) == 1)
-		{
-			x1 = x - getTextWidth(text) * widthScale;
-		}
-		
-		//glBind(textureId);
-		glBegin();
-		for(i = 0; i < text.length(); i++)
-		{
-			letter = (short) text.charAt(i);
-			if(letter < 256 && charArray[letter] != null)
+			object = fontTexture.getCharData(whatchars.charAt(i));
+			if(object != null)
 			{
-				intObject = charArray[letter];
-				drawRect(x1 + (intObject.offsetX) * widthScale, y1 + (intObject.offsetY) * heightScale, x1 + (intObject.offsetX + intObject.width) * widthScale, y1 + (intObject.height) * heightScale, z, intObject.storedX, intObject.storedY, intObject.storedX1, intObject.storedY1);
-				x1 += (intObject.width + intObject.offsetX) * widthScale;
+				
+			}
+		}
+	}
+	
+	private void drawCharacters(CharSequence whatchars, double x, double y, double z, double pointFont)
+	{
+		IntObject letter;
+		int i;
+		double width;
+		glBegin();
+		for(i = 0; i < whatchars.length(); i++)
+		{
+			letter = fontTexture.getCharData(whatchars.charAt(i));
+			if(letter != null)
+			{
+				width = letter.getWidth() * pointFont;
+				drawRectUV(x, y, x + width, y + letter.getHeight() * pointFont, z, letter.getTexture());
+				x += width;
 			}
 		}
 		glEnd();
 	}
-
-	public int getTextWidth(CharSequence whatchars)
+	
+	private void drawCharacters(CharSequence whatchars, double x, double y, double z, double pointFont, Color4d shiftToColor)
 	{
-		int totalwidth = 0;
+		double textWidth = getTextWidth(whatchars, pointFont);
+		double redShift = (shiftToColor.getRed() - getRed()) / textWidth;
+		double greenShift = (shiftToColor.getGreen() - getGreen()) / textWidth;
+		double blueShift = (shiftToColor.getBlue() - getBlue()) / textWidth;
+		double alphaShift = (shiftToColor.getAlpha() - getAlpha()) / textWidth;
+		
+		IntObject letter;
+		int i;
+		double width;
+		glBegin();
+		for(i = 0; i < whatchars.length(); i++)
+		{
+			letter = fontTexture.getCharData(whatchars.charAt(i));
+			if(letter != null)
+			{
+				width = letter.getWidth() * pointFont;
+				drawColorHRectUV(x, y, x + width, y + letter.getHeight() * pointFont, z, letter.getTexture(), getRed() + (redShift * width), getGreen() + (greenShift * width), getBlue() + (blueShift * width), getAlpha() + (alphaShift * width));
+				x += width;
+			}
+		}
+		glEnd();
+	}
+	
+	public double getTextWidth(CharSequence whatchars)
+	{
+		double totalWidth = 0;
 		IntObject intObject = null;
-		int currentChar = 0;
 
 		for (int i = 0; i < whatchars.length(); i++)
 		{
-			currentChar = whatchars.charAt(i);
-			if (currentChar < 256)
+			intObject = fontTexture.getCharData(whatchars.charAt(i));
+			if(intObject != null)
 			{
-				intObject = charArray[currentChar];
-				totalwidth += intObject.width + intObject.offsetX;
+				totalWidth += intObject.getWidth();
 			}
+			else
+				return 0;
 		}
-		return totalwidth;
+		return totalWidth;
 	}
 
-	public double getTextWidth(CharSequence whatchars, double widthScale)
+	public double getTextWidth(CharSequence whatchars, double pointFont)
 	{
-		return getTextWidth(whatchars) * widthScale;
+		return getTextWidth(whatchars) * pointFont;
 	}
 
-	public int getHeight(CharSequence whatchars)
+	public double getTextHeight(CharSequence whatchars)
 	{
-		int height = 0;
+		double largestHeight = 0;
 		IntObject intObject = null;
-		int currentChar = 0;
 
 		for (int i = 0; i < whatchars.length(); i++)
 		{
-			currentChar = whatchars.charAt(i);
-			if (currentChar < 256)
+			intObject = fontTexture.getCharData(whatchars.charAt(i));
+			if(intObject != null && intObject.getHeight() > largestHeight)
 			{
-				intObject = charArray[currentChar];
-				height = Math.max(intObject.height, height);
+				largestHeight = intObject.getHeight();
 			}
 		}
-		return height;
+		return largestHeight;
 	}
 	
-	public String getTextureName()
+	public double getTextHeight(CharSequence whatchars, double pointFont)
 	{
-		return fontName;
-	}
-	
-	protected void loadTexture(InputStream textureStream)
-	{
-		try 
-		{
-			BufferedImage image = ImageIO.read(textureStream);
-			textureWidth = image.getWidth();
-			textureHeight = image.getHeight();
-			//textureId = createTextureId(getTextureName(), image, false);
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
+		return getTextHeight(whatchars) * pointFont;
 	}
 
-	protected float getTextureWidth()
+	public FontMap getFontMap() 
 	{
-		return textureWidth;
-	}
-
-	protected float getTextureHeight()
-	{
-		return textureHeight;
-	}
-	
-	public void destroy()
-	{
-		//glClearTexture(textureId);
-	}
-
-	protected class IntObject
-	{
-		public short width;
-		public short height;
-		public short offsetX;
-		public short offsetY;
-		public float storedX;
-		public float storedY;
-		public float storedX1;
-		public float storedY1;
+		return fontTexture;
 	}
 
 }

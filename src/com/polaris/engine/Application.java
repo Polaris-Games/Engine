@@ -37,7 +37,6 @@ import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 
-import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,63 +46,37 @@ import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
+import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.glfw.GLFWWindowCloseCallback;
 import org.lwjgl.glfw.GLFWWindowFocusCallback;
 import org.lwjgl.glfw.GLFWWindowIconifyCallback;
 import org.lwjgl.glfw.GLFWWindowPosCallback;
 import org.lwjgl.glfw.GLFWWindowRefreshCallback;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
-import org.lwjgl.glfw.GLFWvidmode;
 import org.lwjgl.opengl.GL;
 
+import com.polaris.engine.render.FontManager;
 import com.polaris.engine.render.ModelManager;
 import com.polaris.engine.render.TextureManager;
 
 public abstract class Application extends Thread
 {
-
-	private static ThreadLocal<Long> instance = new ThreadLocal<Long>() {
-		public Long initialValue()
-		{
-			return 0L;
-		}
-	};
 	/**
 	 * Instance version of the application's window instance
 	 */
-	protected long windowInstance;
-
-	private static ThreadLocal<Double> mousePositionX = new ThreadLocal<Double>() {
-		public Double initialValue()
-		{
-			return 0D;
-		}
-	};
-
-	private static ThreadLocal<Double> mousePositionY = new ThreadLocal<Double>() {
-		public Double initialValue()
-		{
-			return 0D;
-		}
-	};
+	protected static long windowInstance;
 	/**
 	 * Instance version of the application's mouse position
 	 */
-	protected double mouseX;
+	protected static double mouseX;
 	/**
 	 * Instance version of the application's mouse position
 	 */
-	protected double mouseY;
+	protected static double mouseY;
 
-	private static ThreadLocal<TextureManager> textureManagers = new ThreadLocal<TextureManager>() {
-		public TextureManager initialValue()
-		{
-			return null;
-		}
-	};
-
-	protected TextureManager textureManager;
-	protected ModelManager modelManager;
+	protected static FontManager fontManager;
+	protected static ModelManager modelManager;
+	protected static TextureManager textureManager;
 
 	private GLFWCursorEnterCallback cursorBounds = new GLFWCursorEnterCallback () {
 
@@ -203,9 +176,9 @@ public abstract class Application extends Thread
 		GL.createCapabilities();
 		try
 		{
-			textureManager = new TextureManager(getResourceLocation());
+			fontManager = new FontManager();
 			modelManager = new ModelManager(getResourceLocation());
-			textureManagers.set(textureManager);
+			textureManager = new TextureManager(getResourceLocation(), fontManager, modelManager);
 		}
 		catch(Exception e)
 		{
@@ -227,11 +200,9 @@ public abstract class Application extends Thread
 					return;
 			}
 
-			glfwGetCursorPos(Application.getInstance(), mouseBufferX, mouseBufferY);
+			glfwGetCursorPos(getWindowInstance(), mouseBufferX, mouseBufferY);
 			mouseX = mouseBufferX.get();
 			mouseY = mouseBufferY.get();
-			mousePositionX.set(mouseX);
-			mousePositionY.set(mouseY);
 			glfwPollEvents();
 
 			SoundManager.update();
@@ -258,7 +229,6 @@ public abstract class Application extends Thread
 			glfwTerminate();
 			return false;
 		}
-		instance.set(windowInstance);
 		setWindowEvents();
 		glfwMakeContextCurrent(windowInstance);
 		glfwSwapInterval(1);
@@ -531,15 +501,15 @@ public abstract class Application extends Thread
 	protected static long createAndCenter(int width, int height, String title, int monitor, int share)
 	{
 		long instance = glfwCreateWindow(width, height, title, monitor, share);
-		ByteBuffer buffer = glfwGetVideoMode(glfwGetPrimaryMonitor());
-		glfwSetWindowPos(instance, (GLFWvidmode.width(buffer) - width) / 2, (GLFWvidmode.height(buffer) - height) / 2);
+		GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		glfwSetWindowPos(instance, (videoMode.width() - width) / 2, (videoMode.height() - height) / 2);
 		return instance;
 	}
 
 	/**
 	 * @return windows instance
 	 */
-	public long getWindowInstance()
+	public static long getWindowInstance()
 	{
 		return windowInstance;
 	}
@@ -547,7 +517,7 @@ public abstract class Application extends Thread
 	/**
 	 * @return mouse position
 	 */
-	public double getMousePosX()
+	public static double getMouseX()
 	{
 		return mouseX;
 	}
@@ -555,49 +525,14 @@ public abstract class Application extends Thread
 	/**
 	 * @return mouse position
 	 */
-	public double getMousePosY()
+	public static double getMouseY()
 	{
 		return mouseY;
 	}
 
-	public TextureManager getTextureManager()
+	public static TextureManager getTextureManager()
 	{
 		return textureManager;
-	}
-
-	/**
-	 * Thread specific version of the application's window instance.
-	 * <br><b>ONLY WORKS WITH MAIN THREAD, OTHERWISE REROUTE TO INSTANCE VERSION</b>
-	 * @return window instance
-	 */
-	public static long getInstance() 
-	{
-		return instance.get();
-	}
-
-	/**
-	 * Thread specific version of the application's mouse position.
-	 * <br><b>ONLY WORKS WITH MAIN THREAD, OTHERWISE REROUTE TO INSTANCE VERSION</b>
-	 * @return mouse position
-	 */
-	public static double getMouseX()
-	{
-		return mousePositionX.get();
-	}
-
-	/**
-	 * Thread specific version of the application's mouse position.
-	 * <br><b>ONLY WORKS WITH MAIN THREAD, OTHERWISE REROUTE TO INSTANCE VERSION</b>
-	 * @return mouse position
-	 */
-	public static double getMouseY()
-	{
-		return mousePositionY.get();
-	}
-
-	public static TextureManager getTexture()
-	{
-		return textureManagers.get();
 	}
 
 }

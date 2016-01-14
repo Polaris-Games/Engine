@@ -4,10 +4,14 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,6 +44,8 @@ public class Helper
 	 * PI / 2
 	 */
 	public static final double HALFPI = Math.PI / 2;
+	
+	public static final ClassLoader classLoader = Helper.class.getClassLoader();
 
 	static
 	{
@@ -292,12 +298,12 @@ public class Helper
 
 	public static URL getResource(String s)
 	{
-		return Helper.class.getClassLoader().getResource(s);
+		return classLoader.getResource(s);
 	}
 
 	public static InputStream getResourceStream(String s)
 	{
-		return Helper.class.getClassLoader().getResourceAsStream(s);
+		return classLoader.getResourceAsStream(s);
 	}
 
 	public static void createFileSafely(File file) throws IOException
@@ -474,5 +480,50 @@ public class Helper
 	{
 		return Math.log(value) / Math.log(base);
 	}
+	
+	public static BufferedImage resize(BufferedImage image, int newWidth, int newHeight)
+	{
+		BufferedImage dimg = new BufferedImage(newWidth, newHeight, image.getType());
+		for(int i = 0; i < image.getWidth(); i++)
+		{
+			for(int j = 0; j < image.getHeight(); j++)
+			{
+				dimg.setRGB(i, j, image.getRGB(i, j));
+			}
+		}
+		System.out.println("test");
+		return dimg;
+	}
+	
+	public static void injectBufferedImage(BufferedImage image, BufferedImage injectionImage, int x, int y)
+	{
+		for(int i = 0; i < injectionImage.getWidth(); i++)
+		{
+			for(int j = 0; j < injectionImage.getHeight(); j++)
+			{
+				image.setRGB(i + x, j + y, injectionImage.getRGB(i, j));
+			}
+		}
+	}
 
+	public static BufferedReader newReader(File file) throws FileNotFoundException 
+	{
+		return new BufferedReader(new FileReader(file));
+	}
+
+	public static BufferedWriter newWriter(File file) throws IOException
+	{
+		return new BufferedWriter(new FileWriter(file));
+	}
+
+	public static boolean fileStartsWith(File file, String ... strings)
+	{
+		boolean flag = false;
+		for(int i = 0; i < strings.length && !flag; i++)
+		{
+			flag = file.getName().startsWith(strings[i]);
+		}
+		return flag;
+	}
+	
 }

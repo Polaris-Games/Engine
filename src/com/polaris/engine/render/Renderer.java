@@ -1,5 +1,6 @@
 package com.polaris.engine.render;
 
+import static com.polaris.engine.Application.getTextureManager;
 import static com.polaris.engine.util.Helper.TWOPI;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
@@ -72,43 +73,20 @@ import org.lwjgl.opengl.ARBFramebufferObject;
 import org.lwjgl.opengl.ARBTextureStorage;
 import org.lwjgl.opengl.GL11;
 
-import com.polaris.engine.Application;
-
 public class Renderer 
 {
-	private static ThreadLocal<Integer> windowWidth = new ThreadLocal<Integer>() {
-		public Integer initialValue()
-		{
-			return 0;
-		}
-	};
-	private static ThreadLocal<Integer> windowHeight = new ThreadLocal<Integer> () {
-		public Integer initialValue()
-		{
-			return 0;
-		}
-	};
-	private static ThreadLocal<Double> windowRatio = new ThreadLocal<Double> () {
-		public Double initialValue()
-		{
-			return 0D;
-		}
-	};
-	private static ThreadLocal<Color4d> currentColor = new ThreadLocal<Color4d> () {
-		public Color4d initialValue()
-		{
-			return new Color4d(1, 1, 1, 1);
-		}
-	};
+	
+	private static int windowWidth = 0;
+	private static int windowHeight = 0;
+	private static Color4d currentColor = new Color4d(1, 1, 1, 1);
 
 	public static void updateSize(long windowInstance) 
 	{
 		IntBuffer width = IntBuffer.allocate(1);
 		IntBuffer height = IntBuffer.allocate(1);
 		glfwGetFramebufferSize(windowInstance, width, height);
-		windowWidth.set(width.get());
-		windowHeight.set(height.get());
-		windowRatio.set(windowWidth.get() / (double) windowHeight.get());
+		windowWidth = width.get();
+		windowHeight = height.get();
 	}
 
 	public static int createTextureId(BufferedImage image, boolean mipmap)
@@ -156,7 +134,7 @@ public class Renderer
 	
 	public static void gl2d()
 	{
-		glViewport(0, 0, windowWidth.get(), windowHeight.get());
+		glViewport(0, 0, windowWidth, windowHeight);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		glOrtho(0, 1280, 720, 0, -1, 1);
@@ -166,22 +144,22 @@ public class Renderer
 
 	public static void gl3d()
 	{
-		glViewport(0, 0, windowWidth.get(), windowHeight.get());
+		glViewport(0, 0, windowWidth, windowHeight);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		glOrtho(0, windowWidth.get(), windowHeight.get(), 0, .1f, 1000f);
+		glOrtho(0, windowWidth, windowHeight, 0, .1f, 1000f);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 	}
 	
 	public static boolean glBind(String textureId)
 	{
-		return Application.getTexture().bindTexture(textureId);
+		return getTextureManager().bindTexture(textureId);
 	}
 	
 	public static boolean glClearTexture(String textureId)
 	{
-		return Application.getTexture().clearTexture(textureId);
+		return getTextureManager().clearTexture(textureId);
 	}
 
 	public static void glEnableText()
@@ -256,7 +234,7 @@ public class Renderer
 	
 	public static Color4d getColor()
 	{
-		return currentColor.get();
+		return currentColor;
 	}
 	
 	public static double getRed()
@@ -278,16 +256,16 @@ public class Renderer
 	{
 		return getColor().getAlpha();
 	}
-
-	public static void colorVertexUV(double x, double y, double z, double u, double v, Color4d color)
-	{
-		glColor(color);
-		vertexUV(x, y, z, u, v);
-	}
-
+	
 	public static void colorVertex(double x, double y, double z, Color4d color)
 	{
 		glColor(color);
+		glVertex3d(x, y, z);
+	}
+	
+	public static void colorVertex(double x, double y, double z, double r, double g, double b, double a)
+	{
+		glColor(r, g, b);
 		glVertex3d(x, y, z);
 	}
 
@@ -296,17 +274,53 @@ public class Renderer
 		glTexCoord2d(u, v);
 		glVertex3d(x, y, z);
 	}
-
-	public static void colorVertex(double x, double y, double z, double r, double g, double b, double a)
+	
+	public static void colorVertexUV(double x, double y, double z, double u, double v, Color4d color)
 	{
-		glColor(r, g, b);
-		glVertex3d(x, y, z);
+		glColor(color);
+		vertexUV(x, y, z, u, v);
 	}
 
 	public static void colorVertexUV(double x, double y, double z, double u, double v, double r, double g, double b, double a)
 	{
 		glColor(r, g, b, a);
 		vertexUV(x, y, z, u, v);
+	}
+	
+	public static void vertexUV(double x, double y, double z, double u, double v, Texture texture)
+	{
+		glTexCoord2d((texture.getMaxU() - texture.getMinU()) * u + texture.getMinU(), (texture.getMaxV() - texture.getMinV()) * v + texture.getMinV());
+		glVertex3d(x, y, z);
+	}
+	
+	public static void colorVertexUV(double x, double y, double z, double u, double v, Texture texture, Color4d color)
+	{
+		glColor(color);
+		vertexUV(x, y, z, u, v, texture);
+	}
+	
+	public static void colorVertexUV(double x, double y, double z, double u, double v, Texture texture, double r, double g, double b, double a)
+	{
+		glColor(r, g, b, a);
+		vertexUV(x, y, z, u, v, texture);
+	}
+	
+	public static void vertexUV(double x, double y, double z, double u, double v, AnimatedTexture texture, int animationID)
+	{
+		glTexCoord2d((texture.getMaxU(animationID) - texture.getMinU(animationID)) * u + texture.getMinU(animationID), (texture.getMaxV(animationID) - texture.getMinV(animationID)) * v + texture.getMinV(animationID));
+		glVertex3d(x, y, z);
+	}
+	
+	public static void colorVertexUV(double x, double y, double z, double u, double v, AnimatedTexture texture, int animationID, Color4d color)
+	{
+		glColor(color);
+		vertexUV(x, y, z, u, v, texture, animationID);
+	}
+	
+	public static void colorVertexUV(double x, double y, double z, double u, double v, AnimatedTexture texture, int animationID, double r, double g, double b, double a)
+	{
+		glColor(r, g, b, a);
+		vertexUV(x, y, z, u, v, texture, animationID);
 	}
 
 	public static void drawRect(double x, double y, double x1, double y1, double z, double thickness)
@@ -358,12 +372,148 @@ public class Renderer
 		colorVertex(x, y, z, color3);
 	}
 
-	public static void drawRect(double x, double y, double x1, double y1, double z, double u, double v, double u1, double v1)
+	public static void drawRectUV(double x, double y, double x1, double y1, double z, double u, double v, double u1, double v1)
 	{
 		vertexUV(x, y1, z, u, v1);
 		vertexUV(x1, y1, z, u1, v1);
 		vertexUV(x1, y, z, u1, v);
 		vertexUV(x, y, z, u, v);
+	}
+	
+	public static void drawRectUV(double x, double y, double x1, double y1, double z)
+	{
+		TextureManager manager = getTextureManager();
+		Texture texture = manager.getTexture();
+		vertexUV(x, y, z, texture.getMinU(), texture.getMinV());
+		vertexUV(x, y1, z, texture.getMinU(), texture.getMaxV());
+		vertexUV(x1, y1, z, texture.getMaxU(), texture.getMaxV());
+		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
+	}
+	
+	public static void drawRectUV(double x, double y, double x1, double y1, double z, int animationID)
+	{
+		TextureManager manager = getTextureManager();
+		Texture texture = manager.getTexture();
+		vertexUV(x, y, z, texture.getMinU(animationID), texture.getMinV(animationID));
+		vertexUV(x, y1, z, texture.getMinU(animationID), texture.getMaxV(animationID));
+		vertexUV(x1, y1, z, texture.getMaxU(animationID), texture.getMaxV(animationID));
+		vertexUV(x1, y, z, texture.getMaxU(animationID), texture.getMinV(animationID));
+	}
+	
+	public static void drawRectUV(double x, double y, double x1, double y1, double z, Texture texture)
+	{
+		vertexUV(x, y, z, texture.getMinU(), texture.getMinV());
+		vertexUV(x, y1, z, texture.getMinU(), texture.getMaxV());
+		vertexUV(x1, y1, z, texture.getMaxU(), texture.getMaxV());
+		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
+	}
+	
+	public static void drawRectUV(double x, double y, double x1, double y1, double z, Texture texture, int animationID)
+	{
+		float u = texture.getMinU(animationID);
+		float u1 = texture.getMaxU(animationID);
+		float v = texture.getMinV(animationID);
+		float v1 = texture.getMaxV(animationID);
+		vertexUV(x, y, z, u, v);
+		vertexUV(x, y1, z, u, v1);
+		vertexUV(x1, y1, z, u1, v1);
+		vertexUV(x1, y, z, u1, v);
+	}
+	
+	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, double u, double v, double u1, double v1, Color4d shiftToColor)
+	{
+		vertexUV(x, y, z, u, v);
+		vertexUV(x, y1, z, u, v1);
+		colorVertexUV(x1, y1, z, u1, v1, shiftToColor);
+		vertexUV(x1, y, z, u1, v);
+	}
+	
+	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, Color4d shiftToColor)
+	{
+		TextureManager manager = getTextureManager();
+		Texture texture = manager.getTexture();
+		vertexUV(x, y, z, texture.getMinU(), texture.getMinV());
+		vertexUV(x, y1, z, texture.getMinU(), texture.getMaxV());
+		colorVertexUV(x1, y1, z, texture.getMaxU(), texture.getMaxV(), shiftToColor);
+		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
+	}
+	
+	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, int animationID, Color4d shiftToColor)
+	{
+		TextureManager manager = getTextureManager();
+		Texture texture = manager.getTexture();
+		vertexUV(x, y, z, texture.getMinU(animationID), texture.getMinV(animationID));
+		vertexUV(x, y1, z, texture.getMinU(animationID), texture.getMaxV(animationID));
+		colorVertexUV(x1, y1, z, texture.getMaxU(animationID), texture.getMaxV(animationID), shiftToColor);
+		vertexUV(x1, y, z, texture.getMaxU(animationID), texture.getMinV(animationID));
+	}
+	
+	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, Texture texture, Color4d shiftToColor)
+	{
+		vertexUV(x, y, z, texture.getMinU(), texture.getMinV());
+		vertexUV(x, y1, z, texture.getMinU(), texture.getMaxV());
+		colorVertexUV(x1, y1, z, texture.getMaxU(), texture.getMaxV(), shiftToColor);
+		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
+	}
+	
+	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, Texture texture, int animationID, Color4d shiftToColor)
+	{
+		float u = texture.getMinU(animationID);
+		float u1 = texture.getMaxU(animationID);
+		float v = texture.getMinV(animationID);
+		float v1 = texture.getMaxV(animationID);
+		vertexUV(x, y, z, u, v);
+		vertexUV(x, y1, z, u, v1);
+		colorVertexUV(x1, y1, z, u1, v1, shiftToColor);
+		vertexUV(x1, y, z, u1, v);
+	}
+	
+	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, double u, double v, double u1, double v1, double r, double g, double b, double a)
+	{
+		vertexUV(x, y, z, u, v);
+		vertexUV(x, y1, z, u, v1);
+		colorVertexUV(x1, y1, z, u1, v1, r, g, b, a);
+		vertexUV(x1, y, z, u1, v);
+	}
+	
+	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, double r, double g, double b, double a)
+	{
+		TextureManager manager = getTextureManager();
+		Texture texture = manager.getTexture();
+		vertexUV(x, y, z, texture.getMinU(), texture.getMinV());
+		vertexUV(x, y1, z, texture.getMinU(), texture.getMaxV());
+		colorVertexUV(x1, y1, z, texture.getMaxU(), texture.getMaxV(), r, g, b, a);
+		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
+	}
+	
+	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, int animationID, double r, double g, double b, double a)
+	{
+		TextureManager manager = getTextureManager();
+		Texture texture = manager.getTexture();
+		vertexUV(x, y, z, texture.getMinU(animationID), texture.getMinV(animationID));
+		vertexUV(x, y1, z, texture.getMinU(animationID), texture.getMaxV(animationID));
+		colorVertexUV(x1, y1, z, texture.getMaxU(animationID), texture.getMaxV(animationID), r, g, b, a);
+		vertexUV(x1, y, z, texture.getMaxU(animationID), texture.getMinV(animationID));
+	}
+	
+	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, Texture texture, double r, double g, double b, double a)
+	{
+		vertexUV(x, y, z, texture.getMinU(), texture.getMinV());
+		vertexUV(x, y1, z, texture.getMinU(), texture.getMaxV());
+		colorVertexUV(x1, y1, z, texture.getMaxU(), texture.getMaxV(), r, g, b, a);
+		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
+	}
+	
+	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, Texture texture, int animationID, double r, double g, double b, double a)
+	{
+		float u = texture.getMinU(animationID);
+		float u1 = texture.getMaxU(animationID);
+		float v = texture.getMinV(animationID);
+		float v1 = texture.getMaxV(animationID);
+		vertexUV(x, y, z, u, v);
+		vertexUV(x, y1, z, u, v1);
+		colorVertexUV(x1, y1, z, u1, v1, r, g, b, a);
+		vertexUV(x1, y, z, u1, v);
 	}
 
 	public static void drawArc(double circleX, double circleY, double z, double radius, int lineCount, double thickness)
@@ -455,10 +605,25 @@ public class Renderer
 
 	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, int lineCount)
 	{
-		drawCircle(circleX, circleY, z, radius, u, v, u1, v1, lineCount, 0, TWOPI);
+		drawCircle(circleX, circleY, z, radius, u, v, u1, v1, getTextureManager().getTexture(), lineCount, 0, TWOPI);
+	}
+	
+	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, int animationID, int lineCount)
+	{
+		drawCircle(circleX, circleY, z, radius, u, v, u1, v1, (AnimatedTexture) getTextureManager().getTexture(), animationID, lineCount, 0, TWOPI);
 	}
 
-	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, int lineCount, double angle0, double angle)
+	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, Texture texture, int lineCount)
+	{
+		drawCircle(circleX, circleY, z, radius, u, v, u1, v1, texture, lineCount, 0, TWOPI);
+	}
+	
+	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, AnimatedTexture texture, int animationID, int lineCount)
+	{
+		drawCircle(circleX, circleY, z, radius, u, v, u1, v1, texture, animationID, lineCount, 0, TWOPI);
+	}
+
+	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, Texture texture, int lineCount, double angle0, double angle)
 	{
 		double deltaTheta = (angle - angle0) / lineCount;
 		double difU = (u1 - u) / 2;
@@ -469,7 +634,23 @@ public class Renderer
 		vertexUV(circleX, circleY, z, centerU, centerV);
 		for(int i = 0; i <= lineCount; i++)
 		{
-			vertexUV(circleX + radius * cos((angle -= deltaTheta)), circleY + radius * sin(angle), z, centerU + difU * cos(angle), centerV + difV * sin(angle));
+			vertexUV(circleX + radius * cos((angle -= deltaTheta)), circleY + radius * sin(angle), z, centerU + difU * cos(angle), centerV + difV * sin(angle), texture);
+		}
+		glEnd();
+	}
+
+	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, AnimatedTexture texture, int animationID, int lineCount, double angle0, double angle)
+	{
+		double deltaTheta = (angle - angle0) / lineCount;
+		double difU = (u1 - u) / 2;
+		double difV = (v1 - v) / 2;
+		double centerU = u + difU;
+		double centerV = v + difV;
+		GL11.glBegin(GL_TRIANGLE_FAN);
+		vertexUV(circleX, circleY, z, centerU, centerV);
+		for(int i = 0; i <= lineCount; i++)
+		{
+			vertexUV(circleX + radius * cos((angle -= deltaTheta)), circleY + radius * sin(angle), z, centerU + difU * cos(angle), centerV + difV * sin(angle), texture, animationID);
 		}
 		glEnd();
 	}

@@ -16,5 +16,17 @@ public class VirtualTexture implements ITexture
 	{
 		textureId = id;
 	}
+	
+	@Override
+	public Texture getTexture()
+	{
+		return null;
+	}
+	
+	@Override
+	public Texture getTexture(String textureName)
+	{
+		return null;
+	}
 
 }

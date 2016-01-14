@@ -21,50 +21,57 @@ public class TextureManager
 {
 
 	private Map<String, VirtualTexture> virtualMap = new HashMap<String, VirtualTexture>();
-	private Map<String, TextureMap> stitchedMap = new HashMap<String, TextureMap>();
+	private Map<String, StitchedMap> stitchedMap = new HashMap<String, StitchedMap>();
 	private ITexture currentTexture = null;
 	private File textureDirectory = null;
 
-	public TextureManager(String location) throws IOException
+	public TextureManager(String location, FontManager fontManager, ModelManager modelManager) throws IOException
 	{
 		textureDirectory = new File(Helper.getResource(location).getFile() + "/textures");
 		for(File file : textureDirectory.listFiles())
 		{
-			if(file.isDirectory() && !file.getName().startsWith("stitched") && !file.getName().startsWith("models"))
+			if(file.isDirectory() && !Helper.fileStartsWith(file, "stitched", "models"))
 			{
-				loadStitchMaps(file, !file.getName().contains("$NOLOAD$"));
+				loadStitchMaps(file, !file.getName().contains("$NOLOAD$"), fontManager, modelManager);
 			}
 		}
 	}
 
-	private void loadStitchMaps(File stitchDirectory, boolean load) throws IOException
+	private void loadStitchMaps(File stitchDirectory, boolean load, FontManager fontManager, ModelManager modelManager) throws IOException
 	{
 		for(File subDirectory : stitchDirectory.listFiles())
 		{
 			if(subDirectory.isDirectory())
 			{
-				loadStitchMaps(subDirectory, !subDirectory.getName().contains("$NOLOAD$"));
+				loadStitchMaps(subDirectory, !subDirectory.getName().contains("$NOLOAD$"), fontManager, modelManager);
 			}
 		}
 		List<File> stitchTextures = new ArrayList<File>();
 		for(File stitchTexture : stitchDirectory.listFiles())
 		{
-			if(stitchTexture.isFile() && !stitchTexture.getName().endsWith(".ani"))
+			if(stitchTexture.isFile() && stitchTexture.getName().endsWith(".png"))
 			{
 				stitchTextures.add(stitchTexture);
 			}
 		}
 		
-		TextureMap texture = new TextureMap();
+		StitchedMap texture = null;
 		String title = stitchDirectory.getPath().substring(textureDirectory.getPath().length() + 1).replace("/", ":");
-		BufferedImage savedImage = texture.genTextureMap(stitchTextures, new File(textureDirectory, "stitched/" + title + ".png"));
+		if(title.startsWith("fonts:"))
+		{
+			texture = new FontMap();
+			fontManager.addFont(title.substring(title.indexOf(":")), (FontMap) texture);
+		}
+		else
+			texture = new TextureMap();
+		BufferedImage savedImage = texture.genTextureMap(stitchTextures, new File(stitchDirectory, "animation.ani"));
 		
 		if(load)
 		{
 			texture.setTextureID(Renderer.createTextureId(savedImage, false));
 			stitchedMap.put(title, texture);
 		}
-
+		
 		ImageIO.write(savedImage, "PNG", new File(textureDirectory, "stitched/" + title + ".png"));
 		texture.genInfo(new File(textureDirectory, "stitched/" + title + ".info"));
 	}
@@ -113,7 +120,7 @@ public class TextureManager
 		}
 		return false;
 	}
-
+	
 	public boolean clearTexture(String texture)
 	{
 		if(stitchedMap.containsKey(texture))
@@ -134,6 +141,16 @@ public class TextureManager
 	public ITexture getTextureId(String texture)
 	{
 		return stitchedMap.containsKey(texture) ? stitchedMap.get(texture) : virtualMap.containsKey(texture) ? virtualMap.get(texture) : null;
+	}
+	
+	public Texture getTexture()
+	{
+		return currentTexture.getTexture();
+	}
+	
+	public Texture getTexture(String textureName)
+	{
+		return currentTexture.getTexture(textureName);
 	}
 
 }

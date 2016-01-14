@@ -7,5 +7,25 @@ public class ModelManager
 	{
 		
 	}
+	
+	public void unloadModels()
+	{
+		
+	}
+	
+	public void loadModel(String model)
+	{
+		
+	}
+	
+	public void unloadModel(String model)
+	{
+		
+	}
+	
+	public void renderModel(String model)
+	{
+		
+	}
 
 }
