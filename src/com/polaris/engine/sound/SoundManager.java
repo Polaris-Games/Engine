@@ -1,4 +1,4 @@
-package com.polaris.engine;
+package com.polaris.engine.sound;
 
 import org.lwjgl.openal.ALContext;
 import org.lwjgl.openal.ALDevice;

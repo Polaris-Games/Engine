@@ -2,6 +2,7 @@ package com.polaris.engine;
 
 import static com.polaris.engine.render.Renderer.glClearBuffers;
 import static com.polaris.engine.render.Renderer.glDefaults;
+import static com.polaris.engine.render.Renderer.initializeContent;
 import static com.polaris.engine.render.Renderer.updateSize;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
@@ -55,9 +56,8 @@ import org.lwjgl.glfw.GLFWWindowRefreshCallback;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
 
-import com.polaris.engine.render.FontManager;
-import com.polaris.engine.render.ModelManager;
-import com.polaris.engine.render.TextureManager;
+import com.polaris.engine.gui.GUI;
+import com.polaris.engine.sound.SoundManager;
 
 public abstract class Application extends Thread
 {
@@ -73,10 +73,6 @@ public abstract class Application extends Thread
 	 * Instance version of the application's mouse position
 	 */
 	protected static double mouseY;
-
-	protected static FontManager fontManager;
-	protected static ModelManager modelManager;
-	protected static TextureManager textureManager;
 
 	private GLFWCursorEnterCallback cursorBounds = new GLFWCursorEnterCallback () {
 
@@ -176,9 +172,7 @@ public abstract class Application extends Thread
 		GL.createCapabilities();
 		try
 		{
-			fontManager = new FontManager();
-			modelManager = new ModelManager(getResourceLocation());
-			textureManager = new TextureManager(getResourceLocation(), fontManager, modelManager);
+			initializeContent(getResourceLocation());
 		}
 		catch(Exception e)
 		{
@@ -528,11 +522,6 @@ public abstract class Application extends Thread
 	public static double getMouseY()
 	{
 		return mouseY;
-	}
-
-	public static TextureManager getTextureManager()
-	{
-		return textureManager;
 	}
 
 }

@@ -15,18 +15,24 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 import javax.imageio.ImageIO;
+
+import com.polaris.engine.render.Model;
+import com.polaris.engine.render.ObjModel;
 
 public class Helper 
 {
@@ -46,6 +52,8 @@ public class Helper
 	public static final double HALFPI = Math.PI / 2;
 	
 	public static final ClassLoader classLoader = Helper.class.getClassLoader();
+	
+	public static final Map<String, Constructor<? extends Model>> modelFormats = new HashMap<String, Constructor<? extends Model>>();
 
 	static
 	{
@@ -56,6 +64,11 @@ public class Helper
 			osName = "linux";
 		else
 			osName = "osx";
+		try
+		{
+			modelFormats.put("obj", ObjModel.class.getConstructor(File.class));
+		} 
+		catch (NoSuchMethodException | SecurityException e) {}
 	}
 
 	/**

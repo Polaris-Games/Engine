@@ -1,6 +1,5 @@
-package com.polaris.engine.element;
+package com.polaris.engine.gui;
 
-import com.polaris.engine.GUI;
 import com.polaris.engine.Pos;
 
 public abstract class Element 

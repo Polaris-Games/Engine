@@ -1,11 +1,11 @@
-package com.polaris.engine;
+package com.polaris.engine.gui;
 
 import java.util.ArrayList;
 import static org.lwjgl.glfw.GLFW.*;
 import java.util.Collections;
 import java.util.List;
 
-import com.polaris.engine.element.Element;
+import com.polaris.engine.Application;
 
 public abstract class GUI
 {
