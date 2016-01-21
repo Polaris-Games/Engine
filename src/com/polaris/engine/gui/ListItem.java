@@ -1,5 +1,7 @@
 package com.polaris.engine.gui;
 
+import static com.polaris.engine.Application.*;
+
 public abstract class ListItem<T>
 {
 
@@ -33,15 +35,15 @@ public abstract class ListItem<T>
 		height = h;
 	}
 	
-	public void update(double mouseX, double mouseY, double delta)
+	public void update(double delta)
 	{
-		highlighted = isInRegion(mouseX, mouseY);
+		highlighted = isInRegion();
 	}
 	
-	public abstract void render(double mouseX, double mouseY, double delta);
+	public abstract void render(double delta);
 	
-	public boolean isInRegion(double mouseX, double mouseY)
+	public boolean isInRegion()
 	{
-		return mouseX >= posX && mouseY >= posY && mouseX <= (posX + width) && mouseY <= (posY + height);
+		return getMouseX() >= posX && getMouseY() >= posY && getMouseX() <= (posX + width) && getMouseY() <= (posY + height);
 	}
 }

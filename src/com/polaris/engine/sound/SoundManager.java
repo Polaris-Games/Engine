@@ -6,12 +6,12 @@ import org.lwjgl.openal.ALDevice;
 public class SoundManager
 {
 
-	private static ThreadLocal<ALContext> context = new ThreadLocal<ALContext>() {
+	/*private static ThreadLocal<ALContext> context = new ThreadLocal<ALContext>() {
 		public ALContext initialValue()
 		{
 			return ALContext.create(null, 48000, 60, false);
 		}
-	};
+	};*/
 
 	public static void update() 
 	{
@@ -20,9 +20,9 @@ public class SoundManager
 	
 	public static void release()
 	{
-		ALDevice device = context.get().getDevice();
-		context.get().destroy();
-		device.destroy();
+		//ALDevice device = context.get().getDevice();
+		//context.get().destroy();
+		//device.destroy();
 	}
 
 }

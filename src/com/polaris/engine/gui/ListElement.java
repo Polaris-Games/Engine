@@ -1,5 +1,8 @@
 package com.polaris.engine.gui;
 
+import static com.polaris.engine.Application.getMouseX;
+import static com.polaris.engine.Application.getMouseY;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,38 +35,38 @@ public abstract class ListElement<T> extends Element
 	protected abstract void setListDimensions();
 
 	@Override
-	public void update(double mouseX, double mouseY, double delta)
+	public void update(double delta)
 	{
 		ticksExisted++;
 		if(clicked)
 		{
 			for(int i = 0; i < elementList.size(); i++)
 			{
-				elementList.get(i).update(mouseX, mouseY, delta);
+				elementList.get(i).update(delta);
 			}
 		}
 	}
 
 	@Override
-	public void render(double mouseX, double mouseY, double delta)
+	public void render(double delta)
 	{
 		if(clicked)
 		{
 			for(int i = 0; i < elementList.size(); i++)
 			{
-				elementList.get(i).render(mouseX, mouseY, delta);
+				elementList.get(i).render(delta);
 			}
 		}
 	}
 
 	@Override
-	public boolean mouseClick(double x, double y, int mouseId) 
+	public boolean mouseClick(int mouseId) 
 	{
 		if(!clicked)
 		{
 			clicked = true;
 		}
-		else if(super.isInRegion(x, y))
+		else if(super.isInRegion())
 		{
 			clicked = false;
 		}
@@ -81,12 +84,12 @@ public abstract class ListElement<T> extends Element
 		return elementList.size();
 	}
 
-	public boolean isInRegion(double x, double y)
+	public boolean isInRegion()
 	{
-		return super.isInRegion(x, y) || (clicked && x >= pos.getX() - shiftWidth && y >= pos.getY() - shiftHeight && x <= (pos.getX() - shiftWidth + extraWidth) && y <= (pos.getY() + elementHeight - shiftHeight + extraHeight));
+		return super.isInRegion() || (clicked && getMouseX() >= pos.getX() - shiftWidth && getMouseY() >= pos.getY() - shiftHeight && getMouseX() <= (pos.getX() - shiftWidth + extraWidth) && getMouseY() <= (pos.getY() + elementHeight - shiftHeight + extraHeight));
 	}
 	
-	public void mouseOutOfRegion(double x, double y, int mouseId)
+	public void mouseOutOfRegion(int mouseId)
 	{
 		clicked = false;
 	}

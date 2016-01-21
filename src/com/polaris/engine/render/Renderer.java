@@ -43,9 +43,9 @@ public class Renderer
 
 	public static void updateSize(long windowInstance) 
 	{
-		IntBuffer width = IntBuffer.allocate(1);
-		IntBuffer height = IntBuffer.allocate(1);
-		glfwGetFramebufferSize(windowInstance, width, height);
+		IntBuffer width = BufferUtils.createIntBuffer(1);
+		IntBuffer height = BufferUtils.createIntBuffer(1);
+		glfwGetWindowSize(windowInstance, width, height);
 		windowWidth = width.get();
 		windowHeight = height.get();
 	}
@@ -309,6 +309,7 @@ public class Renderer
 		glOrtho(0, 1280, 720, 0, -1, 1);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
+		glDisable(GL_DEPTH_TEST);
 	}
 
 	public static void gl3d()
@@ -346,7 +347,8 @@ public class Renderer
 
 	public static void glClearBuffers()
 	{
-		GL11.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+		GL11.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	}
 
 	public static void glDefaults()
@@ -517,10 +519,14 @@ public class Renderer
 
 	public static void drawRect(double x, double y, double x1, double y1, double z)
 	{
-		glVertex3d(x, y1, z);
+		glVertex2d(x, y1);
+		glVertex2d(x1, y1);
+		glVertex2d(x1, y);
+		glVertex2d(x, y);
+		/*glVertex3d(x, y1, z);
 		glVertex3d(x1, y1, z);
 		glVertex3d(x1, y, z);
-		glVertex3d(x, y, z);
+		glVertex3d(x, y, z);*/
 	}
 
 	public static void drawRect(double x, double y, double x1, double y1, double z, Color4d color0, Color4d color1, Color4d color2, Color4d color3)

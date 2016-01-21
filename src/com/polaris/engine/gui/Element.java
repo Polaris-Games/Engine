@@ -1,5 +1,6 @@
 package com.polaris.engine.gui;
 
+import static com.polaris.engine.Application.*;
 import com.polaris.engine.Pos;
 
 public abstract class Element 
@@ -10,7 +11,7 @@ public abstract class Element
 	protected double elementHeight = 0;
 	protected int elementId = 0;
 	protected int ticksExisted = 0;
-	protected GUI gui;
+	protected Gui gui;
 	protected boolean highlighted = false;
 	
 	public Element(double x, double y, double width, double height)
@@ -20,23 +21,23 @@ public abstract class Element
 		elementHeight = height;
 	}
 
-	public void update(double mouseX, double mouseY, double delta)
+	public void update(double delta)
 	{
 		ticksExisted++;
-		highlighted = isInRegion(mouseX, mouseY);
+		highlighted = isInRegion();
 	}
 	
-	public abstract void render(double mouseX, double mouseY, double delta);
+	public abstract void render(double delta);
 	
-	public abstract boolean mouseClick(double mouseX, double mouseY, int mouseId);
+	public abstract boolean mouseClick(int mouseId);
 	
-	public boolean mouseHeld(double mouseX, double mouseY, int mouseId) {return false;}
+	public boolean mouseHeld(int mouseId) {return false;}
 	
-	public void mouseRelease(double mouseX, double mouseY, int mouseId) {}
+	public void mouseRelease(int mouseId) {}
 	
-	public void mouseScroll(double mouseX, double mouseY, int mouseMove) {}
+	public void mouseScroll(int mouseMove) {}
 	
-	public void mouseOutOfRegion(double mouseX, double mouseY, int mouseId) {}
+	public void mouseOutOfRegion(int mouseId) {}
 	
 	public int keyPressed(int keyId) {return 0;}
 	
@@ -44,9 +45,9 @@ public abstract class Element
 	
 	public void keyRelease(int keyId) {}
 	
-	public boolean isInRegion(double mouseX, double mouseY)
+	public boolean isInRegion()
 	{
-		return mouseX >= pos.getX() && mouseY >= pos.getY() && mouseX <= (pos.getX() + elementWidth) && mouseY <= (pos.getY() + elementHeight);
+		return getMouseX() >= pos.getX() && getMouseY() >= pos.getY() && getMouseX() <= (pos.getX() + elementWidth) && getMouseY() <= (pos.getY() + elementHeight);
 	}
 
 	public void setId(int id) {elementId = id;}
@@ -55,9 +56,9 @@ public abstract class Element
 	
 	public boolean equals(Element e) {return getId() == e.getId();}
 	
-	public void setGui(GUI g) {gui = g;}
+	public void setGui(Gui g) {gui = g;}
 	
-	public GUI getGui() {return gui;}
+	public Gui getGui() {return gui;}
 	
 	public void close() {}
 

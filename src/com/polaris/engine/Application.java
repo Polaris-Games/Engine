@@ -2,7 +2,6 @@ package com.polaris.engine;
 
 import static com.polaris.engine.render.Renderer.glClearBuffers;
 import static com.polaris.engine.render.Renderer.glDefaults;
-import static com.polaris.engine.render.Renderer.initializeContent;
 import static com.polaris.engine.render.Renderer.updateSize;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
@@ -42,6 +41,7 @@ import java.nio.DoubleBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWCursorEnterCallback;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -56,10 +56,10 @@ import org.lwjgl.glfw.GLFWWindowRefreshCallback;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
 
-import com.polaris.engine.gui.GUI;
+import com.polaris.engine.gui.Gui;
 import com.polaris.engine.sound.SoundManager;
 
-public abstract class Application extends Thread
+public abstract class Application
 {
 	/**
 	 * Instance version of the application's window instance
@@ -153,7 +153,7 @@ public abstract class Application extends Thread
 	};
 
 	private Map<Integer, Integer> keyboardPress = new HashMap<Integer, Integer>();
-	private GUI currentGui;
+	private Gui currentGui;
 	private boolean isRunning = true;
 	private int fullscreenMode = 0;
 
@@ -162,9 +162,6 @@ public abstract class Application extends Thread
 	 */
 	public void run()
 	{
-		DoubleBuffer mouseBufferX = DoubleBuffer.allocate(1);
-		DoubleBuffer mouseBufferY = DoubleBuffer.allocate(1);
-
 		if(glfwInit() == 0 || !setupWindow())
 			return;
 		init();
@@ -172,7 +169,7 @@ public abstract class Application extends Thread
 		GL.createCapabilities();
 		try
 		{
-			initializeContent(getResourceLocation());
+			//initializeContent(getResourceLocation());
 		}
 		catch(Exception e)
 		{
@@ -185,6 +182,8 @@ public abstract class Application extends Thread
 		while(glfwWindowShouldClose(windowInstance) == 0 && isRunning)
 		{
 			double delta = glfwGetTime();
+			DoubleBuffer mouseBufferX = BufferUtils.createDoubleBuffer(1);
+			DoubleBuffer mouseBufferY = BufferUtils.createDoubleBuffer(1);
 			glfwSetTime(0);
 
 			if((glfwGetWindowMonitor(windowInstance) == 0) != (fullscreenMode == 0))
@@ -200,10 +199,10 @@ public abstract class Application extends Thread
 			glfwPollEvents();
 
 			SoundManager.update();
-			update(getMouseX(), getMouseY(), delta);
+			update(delta);
 
 			glClearBuffers();
-			render(getMouseX(), getMouseY(), delta);
+			render(delta);
 			glfwSwapBuffers(windowInstance);
 		}
 		glfwDestroyWindow(windowInstance);
@@ -252,7 +251,7 @@ public abstract class Application extends Thread
 	/**
 	 * @param newGui : the new gui the screen will adopt, if set to null then the application will close.
 	 */
-	public void setGui(GUI newGui)
+	public void setGui(Gui newGui)
 	{
 		if(newGui == null)
 		{
@@ -315,13 +314,13 @@ public abstract class Application extends Thread
 		switch(action)
 		{
 		case GLFW_PRESS:
-			currentGui.mouseClick(mouseX, mouseY, button);
+			currentGui.mouseClick(button);
 			break;
 		case GLFW_REPEAT:
-			currentGui.mouseHeld(mouseX, mouseY, button);
+			currentGui.mouseHeld(button);
 			break;
 		case GLFW_RELEASE:
-			currentGui.mouseRelease(mouseX, mouseY, button);
+			currentGui.mouseRelease(button);
 		}
 	}
 
@@ -333,7 +332,7 @@ public abstract class Application extends Thread
 	 */
 	protected void cursorScroll(double xOffset, double yOffset) 
 	{
-		currentGui.mouseScroll(mouseX, mouseY, xOffset, yOffset);
+		currentGui.mouseScroll(xOffset, yOffset);
 	}
 
 	/**
@@ -435,9 +434,9 @@ public abstract class Application extends Thread
 	 * @param mouseY : current Mouse Position, updates before method call
 	 * @param delta : change in time, measured in actual seconds
 	 */
-	protected void update(double mouseX, double mouseY, double delta) 
+	protected void update(double delta) 
 	{
-		currentGui.update(mouseX, mouseY, delta);
+		currentGui.update(delta);
 	}
 
 	/**
@@ -447,9 +446,9 @@ public abstract class Application extends Thread
 	 * @param mouseY : current Mouse Position, updates before method call
 	 * @param delta : change in time, measured in actual seconds
 	 */
-	protected void render(double mouseX, double mouseY, double delta) 
+	protected void render(double delta) 
 	{
-		currentGui.render(mouseX, mouseY, delta);
+		currentGui.render(delta);
 	}
 
 	/**

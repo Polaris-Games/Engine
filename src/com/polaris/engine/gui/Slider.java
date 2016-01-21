@@ -16,19 +16,19 @@ public abstract class Slider<T> extends Element
 	}
 	
 	@Override
-	public void update(double mouseX, double mouseY, double delta) 
+	public void update(double delta) 
 	{
 		
 	}
 
 	@Override
-	public void render(double mouseX, double mouseY, double delta)
+	public void render(double delta)
 	{
 		
 	}
 
 	@Override
-	public boolean mouseClick(double mouseX, double mouseY, int mouseId) 
+	public boolean mouseClick(int mouseId) 
 	{
 		return false;
 	}

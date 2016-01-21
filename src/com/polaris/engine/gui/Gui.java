@@ -7,7 +7,7 @@ import java.util.List;
 
 import com.polaris.engine.Application;
 
-public abstract class GUI
+public abstract class Gui
 {
 
 	private volatile List<Element> elementList = Collections.synchronizedList(new ArrayList<Element>());
@@ -15,14 +15,14 @@ public abstract class GUI
 	protected int ticksExisted = 0;
 	protected boolean shiftDown = false;
 	protected Application application;
-	protected GUI parent;
+	protected Gui parent;
 
-	public GUI(Application app)
+	public Gui(Application app)
 	{
 		application = app;
 		parent = null;
 	}
-	public GUI(GUI gui)
+	public Gui(Gui gui)
 	{
 		this(gui.application);
 		parent = gui;
@@ -30,7 +30,7 @@ public abstract class GUI
 
 	public void init() {}
 
-	public void update(double mouseX, double mouseY, double delta)
+	public void update(double delta)
 	{
 		ticksExisted++;
 		try
@@ -38,35 +38,35 @@ public abstract class GUI
 			for(int i = 0; i < elementList.size(); i++)
 			{
 				Element e = elementList.get(i);
-				e.update(mouseX, mouseY, delta);
+				e.update(delta);
 			}
 		}
 		catch(Exception e) {}
 	}
 
-	public void render(double mouseX, double mouseY, double delta)
+	public void render(double delta)
 	{
 		try
 		{
 			for(int i = 0; i < elementList.size(); i++)
 			{
 				Element e = elementList.get(i);
-				e.render(mouseX, mouseY, delta);
+				e.render(delta);
 			}
 		}
 		catch(Exception e) {}
 	}
 
-	public boolean mouseClick(double x, double y, int mouseId)
+	public boolean mouseClick(int mouseId)
 	{
 		try
 		{
 			for(int i = 0; i < elementList.size(); i++)
 			{
 				Element e = elementList.get(i);
-				if(e.isInRegion(x, y))
+				if(e.isInRegion())
 				{
-					boolean flag = e.mouseClick(x, y, mouseId);
+					boolean flag = e.mouseClick(mouseId);
 					if(flag && e != currentElement)
 					{
 						unbindCurrentElement(e);
@@ -76,7 +76,7 @@ public abstract class GUI
 				}
 				else
 				{
-					e.mouseOutOfRegion(x, y, mouseId);
+					e.mouseOutOfRegion(mouseId);
 				}
 			}
 		}
@@ -85,28 +85,28 @@ public abstract class GUI
 		return false;
 	}
 
-	public void mouseHeld(double x, double y, int mouseId)
+	public void mouseHeld(int mouseId)
 	{
 		if(currentElement != null)
 		{
-			currentElement.mouseHeld(x, y, mouseId);
+			currentElement.mouseHeld(mouseId);
 		}
 	}
 
-	public void mouseRelease(double x, double y, int mouseId)
+	public void mouseRelease(int mouseId)
 	{
 		if(currentElement != null)
 		{
-			currentElement.mouseRelease(x, y, mouseId);
+			currentElement.mouseRelease(mouseId);
 			unbindCurrentElement();
 		}
 	}
 
-	public void mouseScroll(double x, double y, double xOffset, double yOffset) 
+	public void mouseScroll(double xOffset, double yOffset) 
 	{
 		if(currentElement != null)
 		{
-			//currentElement.mouseScroll(x, y, mouseMove);
+			//currentElement.mouseScroll(mouseMove);
 		}
 	}
 
@@ -233,7 +233,7 @@ public abstract class GUI
 		return currentElement;
 	}
 
-	protected GUI getParent()
+	protected Gui getParent()
 	{
 		return parent;
 	}
