@@ -41,6 +41,10 @@ public class Renderer
 	private static File modelDirectory = null;
 	private static File textureDirectory = null;
 
+	/**
+	 * Called to update the windows size
+	 * @param windowInstance
+	 */
 	public static void updateSize(long windowInstance) 
 	{
 		IntBuffer width = BufferUtils.createIntBuffer(1);
@@ -50,15 +54,20 @@ public class Renderer
 		windowHeight = height.get();
 	}
 
+	/**
+	 * Called once by Application.java to create the texture, model, and font handling. NEVER CALL!
+	 * @param location
+	 * @throws IOException
+	 */
 	public static void initializeContent(String location) throws IOException
 	{
-		textureDirectory = new File(Helper.getResource(location).getFile() + "/textures");
-		modelDirectory = new File(Helper.getResource(location).getFile() + "/models");
+		textureDirectory = new File("resources/textures");
+		modelDirectory = new File("resources/models");
 		for(File file : textureDirectory.listFiles())
 		{
 			if(file.isDirectory() && !Helper.fileStartsWith(file, "stitched", "models"))
 			{
-				loadStitchMaps(file, !file.getName().contains("$NOLOAD$"));
+				loadStitchMaps(file, !file.getName().startsWith("$"));
 			}
 		}
 	}
@@ -69,7 +78,7 @@ public class Renderer
 		{
 			if(subDirectory.isDirectory())
 			{
-				loadStitchMaps(subDirectory, !subDirectory.getName().contains("$NOLOAD$"));
+				loadStitchMaps(subDirectory, !subDirectory.getName().startsWith("$"));
 			}
 		}
 		List<File> stitchTextures = new ArrayList<File>();
@@ -80,7 +89,10 @@ public class Renderer
 				stitchTextures.add(stitchTexture);
 			}
 		}
-
+		
+		if(stitchTextures.size() == 0)
+			return;
+		
 		StitchedMap texture = null;
 		String title = stitchDirectory.getPath().substring(textureDirectory.getPath().length() + 1).replace("/", ":");
 		if(title.startsWith("fonts:"))
@@ -102,6 +114,9 @@ public class Renderer
 		texture.genInfo(new File(textureDirectory, "stitched/" + title + ".info"));
 	}
 
+	/**
+	 * Clears all stitched maps from memory
+	 */
 	public static void clearTextureMap()
 	{
 		for(String textureTitle : textureMap.keySet())
@@ -114,6 +129,9 @@ public class Renderer
 		}
 	}
 
+	/**
+	 * Clears all fonts from memory
+	 */
 	public static void clearFontMap()
 	{
 		for(String fontTitle : textureMap.keySet())
@@ -126,6 +144,9 @@ public class Renderer
 		}
 	}
 
+	/**
+	 * clears all virtual textures from memory
+	 */
 	public static void clearVirtualMap()
 	{
 		for(String virtualTitle : virtualMap.keySet())
@@ -135,6 +156,11 @@ public class Renderer
 		virtualMap.clear();
 	}
 
+	/**
+	 * Loads a stitched texture map into memory
+	 * @param texture
+	 * @throws IOException
+	 */
 	public static void loadTextureMap(String texture) throws IOException
 	{
 		File textureMapFile = new File(textureDirectory, "stitched/" + texture + ".png");
@@ -151,6 +177,11 @@ public class Renderer
 		}
 	}
 	
+	/**
+	 * Loads a model into memory
+	 * @param model
+	 * @throws IOException
+	 */
 	public static void loadModel(String model) throws IOException
 	{
 		String convertedModel = model.replace(":", "/");
@@ -185,12 +216,21 @@ public class Renderer
 		return model;
 	}
 	
+	/**
+	 * Binds a texture to the system for rendering, make sure to enable GL_TEXTURE_2D
+	 * @param textureId
+	 */
 	public static void glBindTexture(int textureId)
 	{
 		currentTexture = null;
 		GL11.glBindTexture(GL_TEXTURE_2D, textureId);
 	}
 
+	/**
+	 * Binds a texture to the system for rendering, make sure to enable GL_TEXTURE_2D
+	 * @param texture
+	 * @return
+	 */
 	public static boolean glBindTexture(String texture) 
 	{
 		if(texture.startsWith("$"))
@@ -211,6 +251,11 @@ public class Renderer
 		return false;
 	}
 
+	/**
+	 * Removes a texture from memory
+	 * @param texture
+	 * @return
+	 */
 	public static boolean glClearTexture(String texture)
 	{
 		ITexture tex = textureMap.get(texture);
@@ -234,11 +279,20 @@ public class Renderer
 		return false;
 	}
 
+	/**
+	 * returns the current texture bounded
+	 * @return
+	 */
 	public static ITexture getTextureId()
 	{
 		return currentTexture;
 	}
 
+	/**
+	 * returns a texture
+	 * @param texture
+	 * @return
+	 */
 	public static ITexture getTextureId(String texture)
 	{
 		ITexture tex = textureMap.get(texture);
@@ -248,16 +302,31 @@ public class Renderer
 		return tex;
 	}
 
+	/**
+	 * only use for texture maps, gets the current texture within the texture map
+	 * @return
+	 */
 	public static Texture getTexture()
 	{
 		return currentTexture.getTexture();
 	}
 
+	/**
+	 * only use for texture maps, gets a specfic texture within the texture map
+	 * @param textureName
+	 * @return
+	 */
 	public static Texture getTexture(String textureName)
 	{
 		return currentTexture.getTexture(textureName);
 	}
 
+	/**
+	 * Generates a texture id int and loads the buffered image into memory
+	 * @param image
+	 * @param mipmap
+	 * @return
+	 */
 	public static int createTextureId(BufferedImage image, boolean mipmap)
 	{
 		if(image != null)
@@ -301,17 +370,22 @@ public class Renderer
 		return -100;
 	}
 
+	/**
+	 * Call before performing 2d rendering
+	 */
 	public static void gl2d()
 	{
 		glViewport(0, 0, windowWidth, windowHeight);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		glOrtho(0, 1280, 720, 0, -1, 1);
+		glOrtho(0, 1280, 720, 0, -100, 100);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-		glDisable(GL_DEPTH_TEST);
 	}
 
+	/**
+	 * Call before performing 3d rendering
+	 */
 	public static void gl3d()
 	{
 		glViewport(0, 0, windowWidth, windowHeight);
@@ -322,35 +396,46 @@ public class Renderer
 		glLoadIdentity();
 	}
 
-	public static void glEnableText()
-	{
-		glEnable(GL_TEXTURE_2D);
-		glBlend();
-	}
-
+	/**
+	 * Default blending function called for alpha rendering
+	 */
 	public static void glBlend()
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	public static void glBlend(int value, int value1)
+	/**
+	 * User inputed values for alpha rendering
+	 * @param src
+	 * @param output
+	 */
+	public static void glBlend(int src, int output)
 	{
 		glEnable(GL_BLEND);
-		glBlendFunc(value, value1);
+		glBlendFunc(src, output);
 	}
 
+	/**
+	 * begin drawing quads
+	 */
 	public static void glBegin()
 	{
 		GL11.glBegin(GL_QUADS);
 	}
 
+	/**
+	 * Called to clear color, depth, and stencil buffers
+	 */
 	public static void glClearBuffers()
 	{
 		glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
-		GL11.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		GL11.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
+	/**
+	 * called to reset application to default content
+	 */
 	public static void glDefaults()
 	{
 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
@@ -374,116 +459,273 @@ public class Renderer
 		glColor3f(1.0f, 1.0f, 1.0f);
 	}
 
-
+	/**
+	 * color scheme for rendering
+	 * @param r
+	 * @param g
+	 * @param b
+	 */
 	public static void glColor(double r, double g, double b)
 	{
 		glColor4d(r, g, b, 1);
 		getColor().setColor(r, g, b, 1);
 	}
 
+	/**
+	 * color scheme for rendering
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void glColor(double r, double g, double b, double a)
 	{
 		glColor4d(r, g, b, a);
 		getColor().setColor(r, g, b, a);
 	}
 
+	/**
+	 * color scheme for rendering
+	 * @param color
+	 */
 	public static void glColor(Color4d color)
 	{
 		glColor4d(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
 		getColor().setColor(color);
 	}
 
+	/**
+	 * get current set color
+	 * @return
+	 */
 	public static Color4d getColor()
 	{
 		return currentColor;
 	}
 
+	/**
+	 * get current red
+	 * @return
+	 */
 	public static double getRed()
 	{
 		return getColor().getRed();
 	}
 
+	/**
+	 * get current green
+	 * @return
+	 */
 	public static double getGreen()
 	{
 		return getColor().getGreen();
 	}
 
+	/**
+	 * get current blue
+	 * @return
+	 */
 	public static double getBlue()
 	{
 		return getColor().getBlue();
 	}
 
+	/**
+	 * get current alpha
+	 * @return
+	 */
 	public static double getAlpha()
 	{
 		return getColor().getAlpha();
 	}
 
+	/**
+	 * called after glBegin(...), sets a vertex with extra data
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param color
+	 */
 	public static void colorVertex(double x, double y, double z, Color4d color)
 	{
 		glColor(color);
 		glVertex3d(x, y, z);
 	}
 
+	/**
+	 * called after glBegin(...), sets a vertex with extra data
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void colorVertex(double x, double y, double z, double r, double g, double b, double a)
 	{
 		glColor(r, g, b);
 		glVertex3d(x, y, z);
 	}
 
+	/**
+	 * called after glBegin(...), sets a vertex with extra data
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param u
+	 * @param v
+	 */
 	public static void vertexUV(double x, double y, double z, double u, double v)
 	{
 		glTexCoord2d(u, v);
 		glVertex3d(x, y, z);
 	}
 
+	/**
+	 * called after glBegin(...), sets a vertex with extra data
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param color
+	 */
 	public static void colorVertexUV(double x, double y, double z, double u, double v, Color4d color)
 	{
 		glColor(color);
 		vertexUV(x, y, z, u, v);
 	}
 
+	/**
+	 * called after glBegin(...), sets a vertex with extra data
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void colorVertexUV(double x, double y, double z, double u, double v, double r, double g, double b, double a)
 	{
 		glColor(r, g, b, a);
 		vertexUV(x, y, z, u, v);
 	}
 
+	/**
+	 * called after glBegin(...), sets a vertex with extra data
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param texture
+	 */
 	public static void vertexUV(double x, double y, double z, double u, double v, Texture texture)
 	{
 		glTexCoord2d((texture.getMaxU() - texture.getMinU()) * u + texture.getMinU(), (texture.getMaxV() - texture.getMinV()) * v + texture.getMinV());
 		glVertex3d(x, y, z);
 	}
 
+	/**
+	 * called after glBegin(...), sets a vertex with extra data
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param texture
+	 */
 	public static void colorVertexUV(double x, double y, double z, double u, double v, Texture texture, Color4d color)
 	{
 		glColor(color);
 		vertexUV(x, y, z, u, v, texture);
 	}
 
+	/**
+	 * called after glBegin(...), sets a vertex with extra data
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param texture
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void colorVertexUV(double x, double y, double z, double u, double v, Texture texture, double r, double g, double b, double a)
 	{
 		glColor(r, g, b, a);
 		vertexUV(x, y, z, u, v, texture);
 	}
 
+	/**
+	 * called after glBegin(...), sets a vertex with extra data
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param texture
+	 * @param animationID
+	 */
 	public static void vertexUV(double x, double y, double z, double u, double v, Texture texture, int animationID)
 	{
 		glTexCoord2d((texture.getMaxU(animationID) - texture.getMinU(animationID)) * u + texture.getMinU(animationID), (texture.getMaxV(animationID) - texture.getMinV(animationID)) * v + texture.getMinV(animationID));
 		glVertex3d(x, y, z);
 	}
 
+	/**
+	 * called after glBegin(...), sets a vertex with extra data
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param texture
+	 * @param animationID
+	 * @param color
+	 */
 	public static void colorVertexUV(double x, double y, double z, double u, double v, Texture texture, int animationID, Color4d color)
 	{
 		glColor(color);
 		vertexUV(x, y, z, u, v, texture, animationID);
 	}
 
+	/**
+	 * called after glBegin(...), sets a vertex with extra data
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param texture
+	 * @param animationID
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void colorVertexUV(double x, double y, double z, double u, double v, Texture texture, int animationID, double r, double g, double b, double a)
 	{
 		glColor(r, g, b, a);
 		vertexUV(x, y, z, u, v, texture, animationID);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param thickness
+	 */
 	public static void drawRect(double x, double y, double x1, double y1, double z, double thickness)
 	{
 		drawRect(x, y1 - thickness, x1, y1, z);
@@ -492,43 +734,69 @@ public class Renderer
 		drawRect(x, y + thickness, x + thickness, y1 - thickness, z);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param thickness
+	 * @param innerColor
+	 */
 	public static void drawRect(double x, double y, double x1, double y1, double z, double thickness, Color4d innerColor)
 	{
 		Color4d outerColor = new Color4d(getColor());
 
-		glVertex2d(x1, y);
-		glVertex2d(x, y);
+		glVertex3d(x1, y, z);
+		glVertex3d(x, y, z);
 		colorVertex(x + thickness, y + thickness, z, innerColor);
-		glVertex2d(x1 - thickness, y + thickness);
+		glVertex3d(x1 - thickness, y + thickness, z);
 
-		glVertex2d(x1 - thickness, y + thickness);
-		glVertex2d(x1 - thickness, y1 - thickness);
+		glVertex3d(x1 - thickness, y + thickness, z);
+		glVertex3d(x1 - thickness, y1 - thickness, z);
 		colorVertex(x1, y1, z, outerColor);
-		glVertex2d(x1, y);
+		glVertex3d(x1, y, z);
 
-		glVertex2d(x, y1);
-		glVertex2d(x1, y1);
+		glVertex3d(x, y1, z);
+		glVertex3d(x1, y1, z);
 		colorVertex(x1 - thickness, y1 - thickness, z, innerColor);
-		glVertex2d(x + thickness, y1 - thickness);
+		glVertex3d(x + thickness, y1 - thickness, z);
 
-		glVertex2d(x + thickness, y1 - thickness);
-		glVertex2d(x + thickness, y + thickness);
+		glVertex3d(x + thickness, y1 - thickness, z);
+		glVertex3d(x + thickness, y + thickness, z);
 		colorVertex(x, y, z, outerColor);
-		glVertex2d(x, y1);
+		glVertex3d(x, y1, z);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 */
 	public static void drawRect(double x, double y, double x1, double y1, double z)
 	{
-		glVertex2d(x, y1);
-		glVertex2d(x1, y1);
-		glVertex2d(x1, y);
-		glVertex2d(x, y);
-		/*glVertex3d(x, y1, z);
+		glVertex3d(x, y1, z);
 		glVertex3d(x1, y1, z);
 		glVertex3d(x1, y, z);
-		glVertex3d(x, y, z);*/
+		glVertex3d(x, y, z);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param color0
+	 * @param color1
+	 * @param color2
+	 * @param color3
+	 */
 	public static void drawRect(double x, double y, double x1, double y1, double z, Color4d color0, Color4d color1, Color4d color2, Color4d color3)
 	{
 		colorVertex(x, y1, z, color0);
@@ -537,6 +805,18 @@ public class Renderer
 		colorVertex(x, y, z, color3);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param u1
+	 * @param v1
+	 */
 	public static void drawRectUV(double x, double y, double x1, double y1, double z, double u, double v, double u1, double v1)
 	{
 		vertexUV(x, y1, z, u, v1);
@@ -545,6 +825,14 @@ public class Renderer
 		vertexUV(x, y, z, u, v);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 */
 	public static void drawRectUV(double x, double y, double x1, double y1, double z)
 	{
 		Texture texture = getTexture();
@@ -554,6 +842,15 @@ public class Renderer
 		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param animationID
+	 */
 	public static void drawRectUV(double x, double y, double x1, double y1, double z, int animationID)
 	{
 		Texture texture = getTexture();
@@ -563,6 +860,15 @@ public class Renderer
 		vertexUV(x1, y, z, texture.getMaxU(animationID), texture.getMinV(animationID));
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param texture
+	 */
 	public static void drawRectUV(double x, double y, double x1, double y1, double z, Texture texture)
 	{
 		vertexUV(x, y, z, texture.getMinU(), texture.getMinV());
@@ -571,6 +877,16 @@ public class Renderer
 		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param texture
+	 * @param animationID
+	 */
 	public static void drawRectUV(double x, double y, double x1, double y1, double z, Texture texture, int animationID)
 	{
 		float u = texture.getMinU(animationID);
@@ -583,6 +899,19 @@ public class Renderer
 		vertexUV(x1, y, z, u1, v);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param u1
+	 * @param v1
+	 * @param shiftToColor
+	 */
 	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, double u, double v, double u1, double v1, Color4d shiftToColor)
 	{
 		vertexUV(x, y, z, u, v);
@@ -591,6 +920,15 @@ public class Renderer
 		vertexUV(x1, y, z, u1, v);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param shiftToColor
+	 */
 	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, Color4d shiftToColor)
 	{
 		Texture texture = getTexture();
@@ -600,6 +938,16 @@ public class Renderer
 		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param animationID
+	 * @param shiftToColor
+	 */
 	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, int animationID, Color4d shiftToColor)
 	{
 		Texture texture = getTexture();
@@ -613,6 +961,16 @@ public class Renderer
 		vertexUV(x1, y, z, u1, v);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param texture
+	 * @param shiftToColor
+	 */
 	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, Texture texture, Color4d shiftToColor)
 	{
 		vertexUV(x, y, z, texture.getMinU(), texture.getMinV());
@@ -621,6 +979,17 @@ public class Renderer
 		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param texture
+	 * @param animationID
+	 * @param shiftToColor
+	 */
 	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, Texture texture, int animationID, Color4d shiftToColor)
 	{
 		float u = texture.getMinU(animationID);
@@ -633,6 +1002,22 @@ public class Renderer
 		vertexUV(x1, y, z, u1, v);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param u1
+	 * @param v1
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, double u, double v, double u1, double v1, double r, double g, double b, double a)
 	{
 		vertexUV(x, y, z, u, v);
@@ -641,6 +1026,18 @@ public class Renderer
 		vertexUV(x1, y, z, u1, v);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, double r, double g, double b, double a)
 	{
 		Texture texture = getTexture();
@@ -650,6 +1047,19 @@ public class Renderer
 		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param animationID
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, int animationID, double r, double g, double b, double a)
 	{
 		Texture texture = getTexture();
@@ -663,6 +1073,19 @@ public class Renderer
 		vertexUV(x1, y, z, u1, v);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param texture
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, Texture texture, double r, double g, double b, double a)
 	{
 		vertexUV(x, y, z, texture.getMinU(), texture.getMinV());
@@ -671,6 +1094,20 @@ public class Renderer
 		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param texture
+	 * @param animationID
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void drawColorHRectUV(double x, double y, double x1, double y1, double z, Texture texture, int animationID, double r, double g, double b, double a)
 	{
 		float u = texture.getMinU(animationID);
@@ -683,6 +1120,19 @@ public class Renderer
 		vertexUV(x1, y, z, u1, v);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param u1
+	 * @param v1
+	 * @param shiftToColor
+	 */
 	public static void drawColorVRectUV(double x, double y, double x1, double y1, double z, double u, double v, double u1, double v1, Color4d shiftToColor)
 	{
 		vertexUV(x1, y, z, u1, v);
@@ -691,6 +1141,15 @@ public class Renderer
 		vertexUV(x1, y1, z, u1, v1);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param shiftToColor
+	 */
 	public static void drawColorVRectUV(double x, double y, double x1, double y1, double z, Color4d shiftToColor)
 	{
 		Texture texture = getTexture();
@@ -700,6 +1159,16 @@ public class Renderer
 		vertexUV(x1, y1, z, texture.getMaxU(), texture.getMaxV());
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param animationID
+	 * @param shiftToColor
+	 */
 	public static void drawColorVRectUV(double x, double y, double x1, double y1, double z, int animationID, Color4d shiftToColor)
 	{
 		Texture texture = getTexture();
@@ -713,6 +1182,16 @@ public class Renderer
 		vertexUV(x1, y1, z, u1, v1);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param texture
+	 * @param shiftToColor
+	 */
 	public static void drawColorVRectUV(double x, double y, double x1, double y1, double z, Texture texture, Color4d shiftToColor)
 	{
 		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
@@ -721,6 +1200,17 @@ public class Renderer
 		vertexUV(x1, y1, z, texture.getMaxU(), texture.getMaxV());
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param texture
+	 * @param animationID
+	 * @param shiftToColor
+	 */
 	public static void drawColorVRectUV(double x, double y, double x1, double y1, double z, Texture texture, int animationID, Color4d shiftToColor)
 	{
 		float u = texture.getMinU(animationID);
@@ -733,6 +1223,22 @@ public class Renderer
 		vertexUV(x1, y1, z, u1, v1);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param u
+	 * @param v
+	 * @param u1
+	 * @param v1
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void drawColorVRectUV(double x, double y, double x1, double y1, double z, double u, double v, double u1, double v1, double r, double g, double b, double a)
 	{
 		vertexUV(x1, y, z, u1, v);
@@ -741,6 +1247,18 @@ public class Renderer
 		vertexUV(x1, y1, z, u1, v1);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void drawColorVRectUV(double x, double y, double x1, double y1, double z, double r, double g, double b, double a)
 	{
 		Texture texture = getTexture();
@@ -750,6 +1268,19 @@ public class Renderer
 		vertexUV(x1, y1, z, texture.getMaxU(), texture.getMaxV());
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param animationID
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void drawColorVRectUV(double x, double y, double x1, double y1, double z, int animationID, double r, double g, double b, double a)
 	{
 		Texture texture = getTexture();
@@ -763,6 +1294,19 @@ public class Renderer
 		vertexUV(x1, y1, z, u1, v1);
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param texture
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void drawColorVRectUV(double x, double y, double x1, double y1, double z, Texture texture, double r, double g, double b, double a)
 	{
 		vertexUV(x1, y, z, texture.getMaxU(), texture.getMinV());
@@ -771,6 +1315,20 @@ public class Renderer
 		vertexUV(x1, y1, z, texture.getMaxU(), texture.getMaxV());
 	}
 
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param texture
+	 * @param animationID
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
 	public static void drawColorVRectUV(double x, double y, double x1, double y1, double z, Texture texture, int animationID, double r, double g, double b, double a)
 	{
 		float u = texture.getMinU(animationID);
@@ -783,11 +1341,31 @@ public class Renderer
 		vertexUV(x1, y1, z, u1, v1);
 	}
 
+	/**
+	 * draws an arc, must have glBegin(GL_QUADS) enabled!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param lineCount
+	 * @param thickness
+	 */
 	public static void drawArc(double circleX, double circleY, double z, double radius, int lineCount, double thickness)
 	{
 		drawArc(circleX, circleY, z, radius, 0, TWOPI, lineCount, thickness);
 	}
 
+	/**
+	 * draws an arc, must have glBegin(GL_QUADS) enabled!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param startAngle
+	 * @param endAngle
+	 * @param lineCount
+	 * @param thickness
+	 */
 	public static void drawArc(double circleX, double circleY, double z, double radius, double startAngle, double endAngle, int lineCount, double thickness)
 	{
 		double theta = (endAngle - startAngle) / (lineCount);
@@ -805,11 +1383,33 @@ public class Renderer
 		}
 	}
 
+	/**
+	 * draws an arc, must have glBegin(GL_QUADS) enabled!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param lineCount
+	 * @param thickness
+	 * @param endColor
+	 */
 	public static void drawArc(double circleX, double circleY, double z, double radius, int lineCount, double thickness, Color4d endColor)
 	{
 		drawArc(circleX, circleY, z, radius, 0, TWOPI, lineCount, thickness, endColor);
 	}
 
+	/**
+	 * draws an arc, must have glBegin(GL_QUADS) enabled!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param angle0
+	 * @param angle
+	 * @param lineCount
+	 * @param thickness
+	 * @param endColor
+	 */
 	public static void drawArc(double circleX, double circleY, double z, double radius, double angle0, double angle, int lineCount, double thickness, Color4d endColor)
 	{
 		double deltaTheta = (angle - angle0) / lineCount;
@@ -833,11 +1433,29 @@ public class Renderer
 		glColor(getRed() - rShift * lineCount, getGreen() - gShift * lineCount, getBlue() - bShift * lineCount, getAlpha() - aShift * lineCount);
 	}
 
+	/**
+	 * draws a circle, do not have any glBegin!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param lineCount
+	 */
 	public static void drawCircle(double circleX, double circleY, double z, double radius, int lineCount)
 	{
 		drawCircle(circleX, circleY, z, radius, lineCount, 0, TWOPI);
 	}
 
+	/**
+	 * draws a circle, do not have any glBegin!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param lineCount
+	 * @param angle0
+	 * @param angle
+	 */
 	public static void drawCircle(double circleX, double circleY, double z, double radius, int lineCount, double angle0, double angle)
 	{
 		double deltaTheta = (angle - angle0) / lineCount;
@@ -850,11 +1468,31 @@ public class Renderer
 		glEnd();
 	}
 
+	/**
+	 * draws a circle, do not have any glBegin!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param lineCount
+	 * @param innerColor
+	 */
 	public static void drawCircle(double circleX, double circleY, double z, double radius, int lineCount, Color4d innerColor)
 	{
 		drawCircle(circleX, circleY, z, radius, lineCount, 0, TWOPI, innerColor);
 	}
 
+	/**
+	 * draws a circle, do not have any glBegin!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param lineCount
+	 * @param angle0
+	 * @param angle
+	 * @param innerColor
+	 */
 	public static void drawCircle(double circleX, double circleY, double z, double radius, int lineCount, double angle0, double angle, Color4d innerColor)
 	{
 		double deltaTheta = (angle - angle0) / lineCount;
@@ -870,26 +1508,93 @@ public class Renderer
 		glEnd();
 	}
 
+	/**
+	 * draws a circle, do not have any glBegin!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param u
+	 * @param v
+	 * @param u1
+	 * @param v1
+	 * @param lineCount
+	 */
 	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, int lineCount)
 	{
 		drawCircle(circleX, circleY, z, radius, u, v, u1, v1, getTexture(), lineCount, 0, TWOPI);
 	}
 
+	/**
+	 * draws a circle, do not have any glBegin!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param u
+	 * @param v
+	 * @param u1
+	 * @param v1
+	 * @param animationID
+	 * @param lineCount
+	 */
 	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, int animationID, int lineCount)
 	{
 		drawCircle(circleX, circleY, z, radius, u, v, u1, v1, getTexture(), animationID, lineCount, 0, TWOPI);
 	}
 
+	/**
+	 * draws a circle, do not have any glBegin!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param u
+	 * @param v
+	 * @param u1
+	 * @param v1
+	 * @param texture
+	 * @param lineCount
+	 */
 	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, Texture texture, int lineCount)
 	{
 		drawCircle(circleX, circleY, z, radius, u, v, u1, v1, texture, lineCount, 0, TWOPI);
 	}
 
+	/**
+	 * draws a circle, do not have any glBegin!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param u
+	 * @param v
+	 * @param u1
+	 * @param v1
+	 * @param texture
+	 * @param animationID
+	 * @param lineCount
+	 */
 	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, Texture texture, int animationID, int lineCount)
 	{
 		drawCircle(circleX, circleY, z, radius, u, v, u1, v1, texture, animationID, lineCount, 0, TWOPI);
 	}
 
+	/**
+	 * draws a circle, do not have any glBegin!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param u
+	 * @param v
+	 * @param u1
+	 * @param v1
+	 * @param texture
+	 * @param lineCount
+	 * @param angle0
+	 * @param angle
+	 */
 	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, Texture texture, int lineCount, double angle0, double angle)
 	{
 		double deltaTheta = (angle - angle0) / lineCount;
@@ -906,6 +1611,22 @@ public class Renderer
 		glEnd();
 	}
 
+	/**
+	 * draws a circle, do not have any glBegin!
+	 * @param circleX
+	 * @param circleY
+	 * @param z
+	 * @param radius
+	 * @param u
+	 * @param v
+	 * @param u1
+	 * @param v1
+	 * @param texture
+	 * @param animationID
+	 * @param lineCount
+	 * @param angle0
+	 * @param angle
+	 */
 	public static void drawCircle(double circleX, double circleY, double z, double radius, double u, double v, double u1, double v1, Texture texture, int animationID, int lineCount, double angle0, double angle)
 	{
 		double deltaTheta = (angle - angle0) / lineCount;

@@ -2,6 +2,7 @@ package com.polaris.engine;
 
 import static com.polaris.engine.render.Renderer.glClearBuffers;
 import static com.polaris.engine.render.Renderer.glDefaults;
+import static com.polaris.engine.render.Renderer.initializeContent;
 import static com.polaris.engine.render.Renderer.updateSize;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
@@ -156,6 +157,7 @@ public abstract class Application
 	private Gui currentGui;
 	private boolean isRunning = true;
 	private int fullscreenMode = 0;
+	private SoundManager soundManager = new SoundManager();
 
 	/**
 	 * Initializes a window application
@@ -169,7 +171,7 @@ public abstract class Application
 		GL.createCapabilities();
 		try
 		{
-			//initializeContent(getResourceLocation());
+			initializeContent(getResourceLocation());
 		}
 		catch(Exception e)
 		{
@@ -179,6 +181,8 @@ public abstract class Application
 
 		glDefaults();
 		glfwSetTime(0);
+		soundManager.start();
+		
 		while(glfwWindowShouldClose(windowInstance) == 0 && isRunning)
 		{
 			double delta = glfwGetTime();
@@ -198,13 +202,15 @@ public abstract class Application
 			mouseY = mouseBufferY.get();
 			glfwPollEvents();
 
-			SoundManager.update();
 			update(delta);
 
 			glClearBuffers();
 			render(delta);
 			glfwSwapBuffers(windowInstance);
 		}
+		
+		while(soundManager.isAlive());
+		
 		glfwDestroyWindow(windowInstance);
 		GL.destroy();
 		glfwTerminate();
@@ -272,6 +278,7 @@ public abstract class Application
 	public void close()
 	{
 		isRunning = false;
+		soundManager.isRunning = false;
 	}
 
 	/**
@@ -390,7 +397,7 @@ public abstract class Application
 		this.windowPos.release();
 		this.windowRefresh.release();
 		this.windowSize.release();
-		SoundManager.release();
+		soundManager.isRunning = false;
 	}
 
 	/**
