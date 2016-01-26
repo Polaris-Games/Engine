@@ -56,6 +56,7 @@ import org.lwjgl.glfw.GLFWWindowPosCallback;
 import org.lwjgl.glfw.GLFWWindowRefreshCallback;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import com.polaris.engine.gui.Gui;
 import com.polaris.engine.sound.SoundManager;
@@ -157,7 +158,8 @@ public abstract class Application
 	private Gui currentGui;
 	private boolean isRunning = true;
 	private int fullscreenMode = 0;
-	private SoundManager soundManager = new SoundManager();
+	private SoundManager soundManager;
+	private GLCapabilities glCapabilities;
 
 	/**
 	 * Initializes a window application
@@ -168,7 +170,11 @@ public abstract class Application
 			return;
 		init();
 
-		GL.createCapabilities();
+		GL.create();
+		glCapabilities = GL.createCapabilities();
+		if(glCapabilities == null || !glCapabilities.OpenGL33)
+			throw new RuntimeException("OpenGL Creation Failed, OpenGL 3.3 required");
+		
 		try
 		{
 			initializeContent(getResourceLocation());
@@ -181,6 +187,7 @@ public abstract class Application
 
 		glDefaults();
 		glfwSetTime(0);
+		soundManager = new SoundManager(this); 
 		soundManager.start();
 		
 		while(glfwWindowShouldClose(windowInstance) == 0 && isRunning)
@@ -471,6 +478,11 @@ public abstract class Application
 	protected String getResourceLocation()
 	{
 		return "resources";
+	}
+	
+	public Gui getCurrentScreen()
+	{
+		return currentGui;
 	}
 
 	/**

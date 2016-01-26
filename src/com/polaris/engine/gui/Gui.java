@@ -1,11 +1,15 @@
 package com.polaris.engine.gui;
 
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT;
+
 import java.util.ArrayList;
-import static org.lwjgl.glfw.GLFW.*;
 import java.util.Collections;
 import java.util.List;
 
 import com.polaris.engine.Application;
+import com.polaris.engine.Camera;
 
 public abstract class Gui
 {
@@ -16,11 +20,13 @@ public abstract class Gui
 	protected boolean shiftDown = false;
 	protected Application application;
 	protected Gui parent;
+	protected Camera camera;
 
 	public Gui(Application app)
 	{
 		application = app;
 		parent = null;
+		camera = new Camera(new float[] {0, 0, 0}, new float[] {0, 0, 0, 0, 0, 0}, new float[] {0, 0, 0});
 	}
 	public Gui(Gui gui)
 	{
@@ -236,6 +242,11 @@ public abstract class Gui
 	protected Gui getParent()
 	{
 		return parent;
+	}
+	
+	public Camera getCamera()
+	{
+		return camera;
 	}
 
 }
