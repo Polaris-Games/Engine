@@ -13,10 +13,12 @@ import javax.imageio.ImageIO;
 
 import com.polaris.engine.util.Helper;
 
-public abstract class StitchedMap implements ITexture
+public class StitchedMap implements ITexture
 {
 	
 	private int textureId = 0;
+	private Map<String, Texture> textureMap = new HashMap<String, Texture>();
+	private Texture currentTexture = null;
 
 	public BufferedImage genTextureMap(List<File> stitchTextures, File fileLocation) throws IOException
 	{
@@ -32,7 +34,7 @@ public abstract class StitchedMap implements ITexture
 		
 		PackedImage packedImage = new PackedImage(imageMap);
 		BufferedImage finalProduct = packedImage.getImage();
-		Map<String, Texture> textureMap = packedImage.getTextureMapping();
+		textureMap = packedImage.getTextureMapping();
 
 		if(fileLocation.exists() && fileLocation.isFile())
 		{
@@ -51,14 +53,12 @@ public abstract class StitchedMap implements ITexture
 			}
 			reader.close();
 		}
-		setMap(textureMap);
 		return finalProduct;
 	}
 	
 	public void genInfo(File output) throws IOException
 	{
 		BufferedWriter writer = Helper.newWriter(output);
-		Map<String, Texture> textureMap = getMap();
 		for(String textureName : textureMap.keySet())
 		{
 			Texture texture = textureMap.get(textureName);
@@ -77,7 +77,7 @@ public abstract class StitchedMap implements ITexture
 	{
 		BufferedReader reader = Helper.newReader(input);
 		String line = null;
-		Map<String, Texture> textureMap = new HashMap<String, Texture>();
+		textureMap = new HashMap<String, Texture>();
 		while((line = reader.readLine()) != null)
 		{
 			if(line.length() > 0 && line.contains(":"))
@@ -91,28 +91,29 @@ public abstract class StitchedMap implements ITexture
 				textureMap.put(content[0], texture);
 			}
 		}
-		setMap(textureMap);
 	}
 	
 	public boolean bindTexture(String texture) 
 	{
+		Texture bindTexture = textureMap.containsKey(texture) ? textureMap.get(texture) : null;
+		if(bindTexture != null && currentTexture != bindTexture)
+		{
+			currentTexture = bindTexture;
+			return true;
+		}
 		return false;
 	}
 	
 	@Override
-	public Texture getTexture() 
+	public Texture getTexture()
 	{
-		return null;
+		return currentTexture;
 	}
-
-	@Override
+	
 	public Texture getTexture(String textureName)
 	{
-		return null;
+		return textureMap.get(textureName);
 	}
-
-	public abstract Map<String, Texture> getMap();
-	public abstract void setMap(Map<String, Texture> textureMap);
 
 	@Override
 	public int getTextureID() 

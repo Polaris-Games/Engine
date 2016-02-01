@@ -1,5 +1,11 @@
 package com.polaris.engine.render;
 
+import static com.polaris.engine.util.Helper.TWOPI;
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
+import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
+import static org.lwjgl.opengl.GL11.*;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -18,11 +24,6 @@ import org.lwjgl.opengl.ARBFramebufferObject;
 import org.lwjgl.opengl.ARBTextureStorage;
 import org.lwjgl.opengl.GL11;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.glfw.GLFW.*;
-import static java.lang.Math.*;
-import static com.polaris.engine.util.Helper.*;
-
 import com.polaris.engine.util.Color4d;
 import com.polaris.engine.util.Helper;
 
@@ -34,8 +35,7 @@ public class Renderer
 	private static int windowHeight = 0;
 	private static Color4d currentColor = new Color4d(1, 1, 1, 1);
 
-	private static Map<String, VirtualTexture> virtualMap = new HashMap<String, VirtualTexture>();
-	private static Map<String, StitchedMap> textureMap = new HashMap<String, StitchedMap>();
+	private static Map<String, ITexture> textures = new HashMap<String, ITexture>();
 	private static Map<String, Model> modelMap = new HashMap<String, Model>();
 	private static ITexture currentTexture = null;
 	private static File modelDirectory = null;
@@ -67,18 +67,59 @@ public class Renderer
 		{
 			if(file.isDirectory() && !Helper.fileStartsWith(file, "stitched", "models"))
 			{
-				loadStitchMaps(file, !file.getName().startsWith("$"));
+				loadTextures(file, !file.getName().startsWith("$"));
 			}
 		}
 	}
 
-	private static void loadStitchMaps(File stitchDirectory, boolean load) throws IOException
+	public static Map<String, ByteBuffer> getContent()
+	{
+		Map<String, ByteBuffer> buffers = new HashMap<String, ByteBuffer>();
+		for(String texture : textures.keySet())
+		{
+			ByteBuffer data;
+			ByteBuffer width = BufferUtils.createByteBuffer(4);
+			ByteBuffer height = BufferUtils.createByteBuffer(4);
+			ITexture tex = textures.get(texture);
+			glBindTexture(tex.getTextureID());
+			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, width);
+			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, height);
+			data = BufferUtils.createByteBuffer(width.getInt(0) * height.getInt(0) * 4);
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			buffers.put(texture, data);
+		}
+		return buffers;
+	}
+
+	public static void reinitContent(Map<String, ByteBuffer> data)
+	{
+		for(String texture : textures.keySet())
+		{
+			ByteBuffer width = BufferUtils.createByteBuffer(4);
+			ByteBuffer height = BufferUtils.createByteBuffer(4);
+			ITexture tex = textures.get(texture);
+			glBindTexture(tex.getTextureID());
+			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, width);
+			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, height);
+			glDeleteTextures(tex.getTextureID());
+
+			glBindTexture(tex.getTextureID());
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width.getInt(0), height.getInt(0), 0, GL_RGBA, GL_UNSIGNED_BYTE, data.get(texture));
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width.getInt(0), height.getInt(0), GL_RGBA, GL_UNSIGNED_BYTE, data.get(texture));
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		}
+	}
+
+	private static void loadTextures(File stitchDirectory, boolean load) throws IOException
 	{
 		for(File subDirectory : stitchDirectory.listFiles())
 		{
 			if(subDirectory.isDirectory())
 			{
-				loadStitchMaps(subDirectory, !subDirectory.getName().startsWith("$"));
+				loadTextures(subDirectory, !subDirectory.getName().startsWith("$"));
 			}
 		}
 		List<File> stitchTextures = new ArrayList<File>();
@@ -89,29 +130,35 @@ public class Renderer
 				stitchTextures.add(stitchTexture);
 			}
 		}
-		
+
 		if(stitchTextures.size() == 0)
 			return;
-		
-		StitchedMap texture = null;
-		String title = stitchDirectory.getPath().substring(textureDirectory.getPath().length() + 1).replace("/", ":");
-		if(title.startsWith("fonts:"))
+
+		ITexture texture = null;
+		String title = stitchDirectory.getPath().replace("$", "").substring(textureDirectory.getPath().length() + 1).replace("\\", ":");
+		if(title.startsWith("font:"))
 		{
-			texture = new FontMap();
-			textureMap.put(title, (FontMap)texture);
+			if(load)
+			{
+				texture = new FontMap();
+				textures.put(title, texture);
+				((FontMap) texture).setTextureID(createTextureId(((FontMap) texture).genTextureMap(stitchDirectory), false));
+			}
 		}
 		else
-			texture = new TextureMap();
-		BufferedImage savedImage = texture.genTextureMap(stitchTextures, new File(stitchDirectory, "animation.ani"));
-
-		if(load)
 		{
-			texture.setTextureID(Renderer.createTextureId(savedImage, false));
-			textureMap.put(title, texture);
-		}
+			texture = new StitchedMap();
+			BufferedImage savedImage = ((StitchedMap)texture).genTextureMap(stitchTextures, new File(stitchDirectory, "animation.ani"));
 
-		ImageIO.write(savedImage, "PNG", new File(textureDirectory, "stitched/" + title + ".png"));
-		texture.genInfo(new File(textureDirectory, "stitched/" + title + ".info"));
+			if(load)
+			{
+				texture.setTextureID(createTextureId(savedImage, false));
+				textures.put(title, texture);
+			}
+
+			ImageIO.write(savedImage, "PNG", new File(textureDirectory, "stitched/" + title + ".png"));
+			((StitchedMap)texture).genInfo(new File(textureDirectory, "stitched/" + title + ".info"));
+		}
 	}
 
 	/**
@@ -119,12 +166,14 @@ public class Renderer
 	 */
 	public static void clearTextureMap()
 	{
-		for(String textureTitle : textureMap.keySet())
+		ITexture texture;
+		for(String textureTitle : textures.keySet())
 		{
-			if(textureMap.get(textureTitle) instanceof TextureMap)
+			texture = textures.get(textureTitle);
+			if(texture instanceof StitchedMap)
 			{
-				glDeleteTextures(textureMap.get(textureTitle).getTextureID());
-				textureMap.remove(textureTitle);
+				glDeleteTextures(texture.getTextureID());
+				textures.remove(textureTitle);
 			}
 		}
 	}
@@ -134,12 +183,14 @@ public class Renderer
 	 */
 	public static void clearFontMap()
 	{
-		for(String fontTitle : textureMap.keySet())
+		ITexture texture;
+		for(String fontTitle : textures.keySet())
 		{
-			if(textureMap.get(fontTitle) instanceof FontMap)
+			texture = textures.get(fontTitle);
+			if(texture instanceof FontMap)
 			{
-				glDeleteTextures(textureMap.get(fontTitle).getTextureID());
-				textureMap.remove(fontTitle);
+				glDeleteTextures(texture.getTextureID());
+				textures.remove(fontTitle);
 			}
 		}
 	}
@@ -149,11 +200,16 @@ public class Renderer
 	 */
 	public static void clearVirtualMap()
 	{
-		for(String virtualTitle : virtualMap.keySet())
+		ITexture texture;
+		for(String virtualTitle : textures.keySet())
 		{
-			glDeleteTextures(virtualMap.get(virtualTitle).getTextureID());
+			texture = textures.get(virtualTitle);
+			if(texture instanceof VirtualTexture)
+			{
+				glDeleteTextures(texture.getTextureID());
+				textures.remove(virtualTitle);
+			}
 		}
-		virtualMap.clear();
 	}
 
 	/**
@@ -167,16 +223,29 @@ public class Renderer
 		File textureMapInfo = new File(textureDirectory, "stitched/" + texture + ".info");
 		if(textureMapFile.isFile() && textureMapInfo.isFile())
 		{
-			if(!textureMap.containsKey(texture))
+			if(!textures.containsKey(texture))
 			{
-				TextureMap stitchedTexture = new TextureMap();
+				StitchedMap stitchedTexture = new StitchedMap();
 				stitchedTexture.loadInfo(textureMapInfo);
 				stitchedTexture.setTextureID(Renderer.createTextureId(ImageIO.read(textureMapFile), false));
-				textureMap.put(texture, stitchedTexture);
+				textures.put(texture, stitchedTexture);
 			}
 		}
 	}
-	
+
+	public static void loadFontMap(String font) throws IOException
+	{
+		File fontLoc = new File(textureDirectory, font.replace(":", "/"));
+		File fontPNG = new File(fontLoc, "font.png");
+		if(fontLoc.exists() && fontLoc.isDirectory() && fontPNG.exists() && new File(fontLoc, "font.txt").exists())
+		{
+			FontMap fontMap = new FontMap();
+			fontMap.genTextureMap(fontLoc);
+			fontMap.setTextureID(Renderer.createTextureId(ImageIO.read(fontPNG), false));
+			textures.put(font, fontMap);
+		}
+	}
+
 	/**
 	 * Loads a model into memory
 	 * @param model
@@ -197,7 +266,7 @@ public class Renderer
 			}
 		}
 	}
-	
+
 	private static Model loadModel(String endingTitle, File location)
 	{
 		Model model = null;
@@ -215,7 +284,7 @@ public class Renderer
 		}
 		return model;
 	}
-	
+
 	/**
 	 * Binds a texture to the system for rendering, make sure to enable GL_TEXTURE_2D
 	 * @param textureId
@@ -238,14 +307,14 @@ public class Renderer
 			ITexture textureId = getTextureId(texture.substring(1));
 			if(textureId != null && textureId != currentTexture)
 			{
-				GL11.glBindTexture(GL_TEXTURE_2D, textureId.getTextureID());
+				glBindTexture(textureId.getTextureID());
 				currentTexture = textureId;
 				return true;
 			}
 		}
-		else if(currentTexture instanceof TextureMap)
+		else if(currentTexture instanceof StitchedMap)
 		{
-			TextureMap map = (TextureMap) currentTexture;
+			StitchedMap map = (StitchedMap) currentTexture;
 			return map.bindTexture(texture);
 		}
 		return false;
@@ -258,19 +327,10 @@ public class Renderer
 	 */
 	public static boolean glClearTexture(String texture)
 	{
-		ITexture tex = textureMap.get(texture);
-		if(tex != null)
-			textureMap.remove(texture);
-		else
-		{
-			tex = virtualMap.get(texture);
-			if(tex != null)
-			{
-				virtualMap.remove(texture);
-			}
-		}
+		ITexture tex = textures.get(texture);
 		if(tex != null)
 		{
+			textures.remove(texture);
 			if(tex == currentTexture)
 				currentTexture = null;
 			glDeleteTextures(tex.getTextureID());
@@ -288,6 +348,14 @@ public class Renderer
 		return currentTexture;
 	}
 
+	public static FontMap getFontMap(String fontTitle)
+	{
+		fontTitle = "font:" + fontTitle;
+		if(textures.containsKey(fontTitle))
+			return (FontMap) textures.get(fontTitle);
+		return null;
+	}
+
 	/**
 	 * returns a texture
 	 * @param texture
@@ -295,11 +363,7 @@ public class Renderer
 	 */
 	public static ITexture getTextureId(String texture)
 	{
-		ITexture tex = textureMap.get(texture);
-		if(tex != null)
-			return tex;
-		tex = virtualMap.get(texture);
-		return tex;
+		return textures.get(texture);
 	}
 
 	/**
@@ -318,7 +382,9 @@ public class Renderer
 	 */
 	public static Texture getTexture(String textureName)
 	{
-		return currentTexture.getTexture(textureName);
+		if(currentTexture instanceof StitchedMap)
+			return ((StitchedMap) currentTexture).getTexture(textureName);
+		return null;
 	}
 
 	/**
@@ -347,7 +413,7 @@ public class Renderer
 			}
 
 			buffer.flip();
-			GL11.glBindTexture(GL_TEXTURE_2D, texture);
+			glBindTexture(texture);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			if(mipmap)
@@ -360,7 +426,7 @@ public class Renderer
 			}
 			else
 			{
-				ARBTextureStorage.glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, image.getWidth(), image.getHeight());
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.getWidth(), image.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image.getWidth(), image.getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -386,12 +452,17 @@ public class Renderer
 	/**
 	 * Call before performing 3d rendering
 	 */
-	public static void gl3d()
+	public static void gl3d(final float fovy, final float zNear, final float zFar)
 	{
 		glViewport(0, 0, windowWidth, windowHeight);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		glOrtho(0, windowWidth, windowHeight, 0, .1f, 1000f);
+		double ymax = zNear * Math.tan( fovy * Math.PI / 360.0 );
+		double ymin = -ymax;
+		double xmin = ymin * windowWidth / windowHeight;
+		double xmax = ymax * windowWidth / windowHeight;
+
+		glFrustum( xmin, xmax, ymin, ymax, zNear, zFar );
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 	}
@@ -430,7 +501,7 @@ public class Renderer
 	public static void glClearBuffers()
 	{
 		glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
-		GL11.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
 	/**

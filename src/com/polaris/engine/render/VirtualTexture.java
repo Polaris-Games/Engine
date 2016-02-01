@@ -22,11 +22,5 @@ public class VirtualTexture implements ITexture
 	{
 		return null;
 	}
-	
-	@Override
-	public Texture getTexture(String textureName)
-	{
-		return null;
-	}
 
 }

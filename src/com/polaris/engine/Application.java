@@ -13,7 +13,7 @@ import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
 import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
-import static org.lwjgl.glfw.GLFW.glfwGetWindowMonitor;
+import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
@@ -38,11 +38,13 @@ import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 
+import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWCursorEnterCallback;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -59,6 +61,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 
 import com.polaris.engine.gui.Gui;
+import com.polaris.engine.render.Renderer;
 import com.polaris.engine.sound.SoundManager;
 
 public abstract class Application
@@ -66,7 +69,7 @@ public abstract class Application
 	/**
 	 * Instance version of the application's window instance
 	 */
-	protected static long windowInstance;
+	protected static long windowInstance = -1;
 	/**
 	 * Instance version of the application's mouse position
 	 */
@@ -75,6 +78,9 @@ public abstract class Application
 	 * Instance version of the application's mouse position
 	 */
 	protected static double mouseY;
+
+	protected static double mouseDeltaX;
+	protected static double mouseDeltaY;
 
 	private GLFWCursorEnterCallback cursorBounds = new GLFWCursorEnterCallback () {
 
@@ -158,6 +164,7 @@ public abstract class Application
 	private Gui currentGui;
 	private boolean isRunning = true;
 	private int fullscreenMode = 0;
+	private int currentMode = 0;
 	private SoundManager soundManager;
 	private GLCapabilities glCapabilities;
 
@@ -166,15 +173,14 @@ public abstract class Application
 	 */
 	public void run()
 	{
-		if(glfwInit() == 0 || !setupWindow())
+		if(glfwInit() == 0 || (windowInstance = setupWindow()) == -1)
 			return;
 		init();
 
-		GL.create();
 		glCapabilities = GL.createCapabilities();
 		if(glCapabilities == null || !glCapabilities.OpenGL33)
 			throw new RuntimeException("OpenGL Creation Failed, OpenGL 3.3 required");
-		
+
 		try
 		{
 			initializeContent(getResourceLocation());
@@ -189,35 +195,60 @@ public abstract class Application
 		glfwSetTime(0);
 		soundManager = new SoundManager(this); 
 		soundManager.start();
-		
+
 		while(glfwWindowShouldClose(windowInstance) == 0 && isRunning)
 		{
 			double delta = glfwGetTime();
-			DoubleBuffer mouseBufferX = BufferUtils.createDoubleBuffer(1);
-			DoubleBuffer mouseBufferY = BufferUtils.createDoubleBuffer(1);
 			glfwSetTime(0);
 
-			if((glfwGetWindowMonitor(windowInstance) == 0) != (fullscreenMode == 0))
+			if(fullscreenMode != currentMode)
 			{
-				glfwDestroyWindow(windowInstance);
-				if(!setupWindow())
+				long instance;
+				Map<String, ByteBuffer> data = Renderer.getContent();
+				if((instance = setupWindow()) == -1)
 					return;
+				glfwDestroyWindow(windowInstance);
+				windowInstance = instance;
+				Renderer.reinitContent(data);
 			}
-
-			glfwGetCursorPos(getWindowInstance(), mouseBufferX, mouseBufferY);
-			mouseX = mouseBufferX.get();
-			mouseY = mouseBufferY.get();
 			glfwPollEvents();
+
+			for(Integer key : keyboardPress.keySet())
+			{
+				int j = keyboardPress.get(key);
+				int k = j & 0x0000FFFF;
+				j >>= 16;
+				if(GLFW.glfwGetKey(windowInstance, j) == 1)
+				{
+					if(k-- <= 0)
+					{
+						k = currentGui.keyHeld(key, j);
+						j++;
+						if(k <= 0)
+						{
+							keyboardPress.remove(key);
+							break;
+						}
+					}
+					keyboardPress.put(key, (j << 16) | k);
+				}
+				else
+				{
+					currentGui.keyRelease(key);
+					keyboardPress.remove(key);
+				}
+			}
 
 			update(delta);
 
 			glClearBuffers();
 			render(delta);
+			mouseDeltaX = mouseDeltaY = 0;
 			glfwSwapBuffers(windowInstance);
 		}
-		
+
 		while(soundManager.isAlive());
-		
+
 		glfwDestroyWindow(windowInstance);
 		GL.destroy();
 		glfwTerminate();
@@ -227,38 +258,56 @@ public abstract class Application
 	 * sets up the environment for a window to be created.
 	 * @return true for success, false otherwise
 	 */
-	private boolean setupWindow()
+	private long setupWindow()
 	{
-		windowInstance = createWindow();
-		if(windowInstance == 0)
+		long instance;
+		if(fullscreenMode == 0)
+		{
+			instance = createWindow();
+		}
+		else if(fullscreenMode == 1)
+		{
+			GLFWVidMode mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+			glfwWindowHint(GLFW_RED_BITS, mode.redBits());
+			glfwWindowHint(GLFW_GREEN_BITS, mode.greenBits());
+			glfwWindowHint(GLFW_BLUE_BITS, mode.blueBits());
+			glfwWindowHint(GLFW_REFRESH_RATE, mode.refreshRate());
+			instance = glfwCreateWindow(mode.width(), mode.height(), "", glfwGetPrimaryMonitor(), windowInstance);
+		}
+		else
+		{
+			instance = glfwCreateWindow(1920, 1280, "", glfwGetPrimaryMonitor(), windowInstance);
+		}
+		currentMode = fullscreenMode;
+		if(instance == 0)
 		{
 			glfwTerminate();
-			return false;
+			return -1;
 		}
-		setWindowEvents();
-		glfwMakeContextCurrent(windowInstance);
+		setWindowEvents(instance);
+		glfwMakeContextCurrent(instance);
 		glfwSwapInterval(1);
-		updateSize(windowInstance);
-		glfwShowWindow(windowInstance);
-		return true;
+		updateSize(instance);
+		glfwShowWindow(instance);
+		return instance;
 	}
 
 	/**
 	 * creates the window events that handle input and window changes
 	 */
-	private void setWindowEvents()
+	private void setWindowEvents(long instance)
 	{
-		glfwSetCursorEnterCallback(windowInstance, cursorBounds);
-		glfwSetCursorPosCallback(windowInstance, cursorPos);
-		glfwSetMouseButtonCallback(windowInstance, cursorButton);
-		glfwSetScrollCallback(windowInstance, cursorScroll);
-		glfwSetKeyCallback(windowInstance, keyboard);
-		glfwSetWindowCloseCallback(windowInstance, windowClose);
-		glfwSetWindowFocusCallback(windowInstance, windowFocus);
-		glfwSetWindowIconifyCallback(windowInstance, windowIconify);
-		glfwSetWindowPosCallback(windowInstance, windowPos);
-		glfwSetWindowRefreshCallback(windowInstance, windowRefresh);
-		glfwSetWindowSizeCallback(windowInstance, windowSize);
+		glfwSetCursorEnterCallback(instance, cursorBounds);
+		glfwSetCursorPosCallback(instance, cursorPos);
+		glfwSetMouseButtonCallback(instance, cursorButton);
+		glfwSetScrollCallback(instance, cursorScroll);
+		glfwSetKeyCallback(instance, keyboard);
+		glfwSetWindowCloseCallback(instance, windowClose);
+		glfwSetWindowFocusCallback(instance, windowFocus);
+		glfwSetWindowIconifyCallback(instance, windowIconify);
+		glfwSetWindowPosCallback(instance, windowPos);
+		glfwSetWindowRefreshCallback(instance, windowRefresh);
+		glfwSetWindowSizeCallback(instance, windowSize);
 	}
 
 	/**
@@ -315,7 +364,13 @@ public abstract class Application
 	 * @param mouseX : new mouse x
 	 * @param mouseY : new mouse y
 	 */
-	protected void cursorMove(double mouseX, double mouseY) {}
+	protected void cursorMove(double mX, double mY) 
+	{
+		mouseDeltaX = mX - mouseX;
+		mouseDeltaY = mY - mouseY;
+		mouseX = mX;
+		mouseY = mY;
+	}
 
 	/**
 	 * when the mouse clicks
@@ -357,6 +412,10 @@ public abstract class Application
 	 */
 	protected void keyboardClick(int key, int action) 
 	{
+		if(action == GLFW_PRESS)
+		{
+
+		}
 		switch(action)
 		{
 		case GLFW_PRESS:
@@ -366,25 +425,8 @@ public abstract class Application
 				keyboardPress.put(key, i);
 			}
 			break;
-		case GLFW_REPEAT:
-			int j = keyboardPress.get(key);
-			int k = j & 0x0000FFFF;
-			j >>= 16;
-			if(k-- <= 0)
-			{
-				currentGui.keyHeld(key, j);
-				j++;
-				if(k <= 0)
-				{
-					keyboardPress.remove(key);
-					break;
-				}
-			}
-			keyboardPress.put(key, (j << 16) | k);
-			break;
 		case GLFW_RELEASE:
-			currentGui.keyRelease(key);
-			keyboardPress.remove(key);
+
 		}
 	}
 
@@ -479,7 +521,7 @@ public abstract class Application
 	{
 		return "resources";
 	}
-	
+
 	public Gui getCurrentScreen()
 	{
 		return currentGui;
@@ -510,9 +552,9 @@ public abstract class Application
 	 * @param share : window share
 	 * @return
 	 */
-	protected static long createAndCenter(int width, int height, String title, int monitor, int share)
+	protected static long createAndCenter(int width, int height, String title, int monitor)
 	{
-		long instance = glfwCreateWindow(width, height, title, monitor, share);
+		long instance = glfwCreateWindow(width, height, title, monitor, windowInstance == -1 ? 0 : windowInstance);
 		GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 		glfwSetWindowPos(instance, (videoMode.width() - width) / 2, (videoMode.height() - height) / 2);
 		return instance;
@@ -540,6 +582,16 @@ public abstract class Application
 	public static double getMouseY()
 	{
 		return mouseY;
+	}
+
+	public static double getMouseDeltaX()
+	{
+		return mouseDeltaX;
+	}
+
+	public static double getMouseDeltaY()
+	{
+		return mouseDeltaY;
 	}
 
 }

@@ -1,6 +1,7 @@
 package com.polaris.engine.gui;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static com.polaris.engine.render.Renderer.*;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT;
 
@@ -16,7 +17,7 @@ public abstract class Gui
 
 	private volatile List<Element> elementList = Collections.synchronizedList(new ArrayList<Element>());
 	protected Element currentElement;
-	protected int ticksExisted = 0;
+	protected double ticksExisted = 0;
 	protected boolean shiftDown = false;
 	protected Application application;
 	protected Gui parent;
@@ -38,7 +39,7 @@ public abstract class Gui
 
 	public void update(double delta)
 	{
-		ticksExisted++;
+		ticksExisted += delta;
 		try
 		{
 			for(int i = 0; i < elementList.size(); i++)
@@ -52,6 +53,7 @@ public abstract class Gui
 
 	public void render(double delta)
 	{
+		gl2d();
 		try
 		{
 			for(int i = 0; i < elementList.size(); i++)
@@ -112,7 +114,7 @@ public abstract class Gui
 	{
 		if(currentElement != null)
 		{
-			//currentElement.mouseScroll(mouseMove);
+			//currentElement.mouseScroll(xOffset, yOffset);
 		}
 	}
 
