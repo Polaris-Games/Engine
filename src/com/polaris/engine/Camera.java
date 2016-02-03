@@ -1,36 +1,58 @@
 package com.polaris.engine;
 
+import static com.polaris.engine.render.Renderer.gl3d;
+import static org.lwjgl.opengl.GL11.glRotatef;
+import static org.lwjgl.opengl.GL11.glTranslatef;
+
 import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
 
+import com.polaris.engine.render.Renderer;
+
 public class Camera 
 {
 	
-	private FloatBuffer listenerPosition = BufferUtils.createFloatBuffer(3);
-	private FloatBuffer listenerOrientation = BufferUtils.createFloatBuffer(6);
-	private FloatBuffer listenerVelocity = BufferUtils.createFloatBuffer(3);	
+	private float prevPitch = 0;
+	private float prevYaw = 0;
+	private float pitch = 0;
+	private float yaw = 0;
 	
-	public Camera(float[] fs, float[] fs2, float[] fs3) 
+	public void gl3d(float f, float g, float h)
 	{
-		listenerPosition.put(fs, 0, fs.length);
-		listenerOrientation.put(fs2, 0, fs2.length);
-		listenerVelocity.put(fs3, 0, fs3.length);
-	}
-	
-	public FloatBuffer getPosition()
-	{
-		return listenerPosition;
-	}
-	
-	public FloatBuffer getOrientation()
-	{
-		return listenerOrientation;
-	}
-	
-	public FloatBuffer getVelocity()
-	{
-		return listenerVelocity;
+		Renderer.gl3d(f, g, h);
+		
+		glTranslatef(0.0F, 0.0F, -0.1F);
+		glRotatef(prevPitch + (pitch - prevPitch), 1.0F, 0.0F, 0.0F);
+		glRotatef(prevYaw + (yaw - prevYaw) + 180.0F, 0.0F, 1.0F, 0.0F);
 	}
 
+	public void setAngles(float y, float p)
+	{
+		prevPitch = pitch;
+		prevYaw = yaw;
+		yaw = y;
+		pitch = p;
+		
+		if (pitch < -90.0f)
+		{
+			pitch = -90.0f;
+		}
+		
+		if (pitch > 90.0f)
+		{
+			pitch = 90.0f;
+		}
+	}
+	
+	public float getPitch()
+	{
+		return pitch;
+	}
+	
+	public float getYaw()
+	{
+		return yaw;
+	}
+	
 }

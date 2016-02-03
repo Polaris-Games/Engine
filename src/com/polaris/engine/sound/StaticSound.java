@@ -4,8 +4,6 @@ import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
 
-import com.polaris.engine.util.Vertex3d;
-
 public class StaticSound
 {
 
@@ -21,9 +19,6 @@ public class StaticSound
 		
 	}
 	
-	public StaticSound(String location, Vertex3d sourceVertex)
-	{
-	}
 
 	public boolean isFinished()
 	{

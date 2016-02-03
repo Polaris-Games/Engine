@@ -114,7 +114,7 @@ public abstract class Application
 
 		public void invoke(long window, int key, int scancode, int action, int mods)
 		{
-			keyboardClick(key, action);
+			keyboardClick(key, action, mods);
 		}
 	};
 	private GLFWWindowCloseCallback windowClose = new GLFWWindowCloseCallback () {
@@ -161,11 +161,11 @@ public abstract class Application
 	};
 
 	private Map<Integer, Integer> keyboardPress = new HashMap<Integer, Integer>();
-	private Gui currentGui;
+	protected Gui currentGui;
 	private boolean isRunning = true;
 	private int fullscreenMode = 0;
 	private int currentMode = 0;
-	private SoundManager soundManager;
+	public SoundManager soundManager;
 	private GLCapabilities glCapabilities;
 
 	/**
@@ -175,7 +175,6 @@ public abstract class Application
 	{
 		if(glfwInit() == 0 || (windowInstance = setupWindow()) == -1)
 			return;
-		init();
 
 		glCapabilities = GL.createCapabilities();
 		if(glCapabilities == null || !glCapabilities.OpenGL33)
@@ -191,10 +190,9 @@ public abstract class Application
 			return;
 		}
 
-		glDefaults();
+		init();
 		glfwSetTime(0);
-		soundManager = new SoundManager(this); 
-		soundManager.start();
+		//soundManager = new SoundManager(this); 
 
 		while(glfwWindowShouldClose(windowInstance) == 0 && isRunning)
 		{
@@ -218,7 +216,7 @@ public abstract class Application
 				int j = keyboardPress.get(key);
 				int k = j & 0x0000FFFF;
 				j >>= 16;
-				if(GLFW.glfwGetKey(windowInstance, j) == 1)
+				if(GLFW.glfwGetKey(windowInstance, key) == 1)
 				{
 					if(k-- <= 0)
 					{
@@ -234,20 +232,16 @@ public abstract class Application
 				}
 				else
 				{
-					currentGui.keyRelease(key);
+					currentGui.keyRelease(key, 0);
 					keyboardPress.remove(key);
 				}
 			}
 
 			update(delta);
-
-			glClearBuffers();
 			render(delta);
 			mouseDeltaX = mouseDeltaY = 0;
 			glfwSwapBuffers(windowInstance);
 		}
-
-		while(soundManager.isAlive());
 
 		glfwDestroyWindow(windowInstance);
 		GL.destroy();
@@ -334,7 +328,7 @@ public abstract class Application
 	public void close()
 	{
 		isRunning = false;
-		soundManager.isRunning = false;
+		//soundManager.isRunning = false;
 	}
 
 	/**
@@ -409,24 +403,24 @@ public abstract class Application
 	 * <br><b>DON'T CALL super.keyboardClick(key, action) UNLESS YOU IMPLEMENT GUI CLASS STRUCTURE</b>
 	 * @param key : the key id
 	 * @param action : type of click, GLFW_PRESS, GLFW_RELEASE, GLFW_REPEAT
+	 * @param mods 
 	 */
-	protected void keyboardClick(int key, int action) 
+	protected void keyboardClick(int key, int action, int mods) 
 	{
-		if(action == GLFW_PRESS)
-		{
-
-		}
 		switch(action)
 		{
 		case GLFW_PRESS:
-			int i = currentGui.keyPressed(key);
+			int i = currentGui.keyPressed(key, mods);
 			if(i > 0)
 			{
 				keyboardPress.put(key, i);
 			}
 			break;
 		case GLFW_RELEASE:
-
+			if(!keyboardPress.containsKey(key))
+			{
+				currentGui.keyRelease(key, mods);
+			}
 		}
 	}
 
@@ -446,7 +440,7 @@ public abstract class Application
 		this.windowPos.release();
 		this.windowRefresh.release();
 		this.windowSize.release();
-		soundManager.isRunning = false;
+		//soundManager.isRunning = false;
 	}
 
 	/**
@@ -480,7 +474,8 @@ public abstract class Application
 	 */
 	protected void windowSize(int width, int height) 
 	{
-		updateSize(windowInstance);
+		if(width + height != 0)
+			updateSize(windowInstance);
 	}
 
 	/**

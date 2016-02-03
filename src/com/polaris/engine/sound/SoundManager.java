@@ -9,7 +9,7 @@ import org.lwjgl.openal.ALDevice;
 import com.polaris.engine.Application;
 
 
-public class SoundManager extends Thread
+public class SoundManager
 {
 
 	private static ALDevice device;
@@ -41,13 +41,11 @@ public class SoundManager extends Thread
 
 		context.makeCurrentThread();
 
-		while(isRunning)
-		{
-			//System.out.println("thisa");
-			update();
-		}
-		context.destroy();
-		device.destroy();
+		//while(isRunning)
+		//{
+		//	//System.out.println("thisa");
+		//	update();
+		//} 
 	}
 
 	public static void addSound(StaticSound sound)

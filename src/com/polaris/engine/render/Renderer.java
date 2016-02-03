@@ -31,8 +31,8 @@ import com.polaris.engine.util.Helper;
 public class Renderer 
 {
 
-	private static int windowWidth = 0;
-	private static int windowHeight = 0;
+	public static int windowWidth = 0;
+	public static int windowHeight = 0;
 	private static Color4d currentColor = new Color4d(1, 1, 1, 1);
 
 	private static Map<String, ITexture> textures = new HashMap<String, ITexture>();
@@ -444,7 +444,7 @@ public class Renderer
 		glViewport(0, 0, windowWidth, windowHeight);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		glOrtho(0, 1280, 720, 0, -100, 100);
+		glOrtho(0, 1920, 1080, 0, -100, 100);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 	}
@@ -500,7 +500,6 @@ public class Renderer
 	 */
 	public static void glClearBuffers()
 	{
-		glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
@@ -520,14 +519,11 @@ public class Renderer
 		glDepthFunc(GL_LEQUAL);
 		glDisable(GL_DITHER);
 
-		glCullFace(GL_BACK);
-		glEnable(GL_CULL_FACE);
-
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-		glColor3f(1.0f, 1.0f, 1.0f);
+		glColor(1, 1, 1, 1);
 	}
 
 	/**
@@ -609,7 +605,7 @@ public class Renderer
 	{
 		return getColor().getAlpha();
 	}
-
+	
 	/**
 	 * called after glBegin(...), sets a vertex with extra data
 	 * @param x

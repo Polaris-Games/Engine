@@ -18,16 +18,16 @@ public abstract class Gui
 	private volatile List<Element> elementList = Collections.synchronizedList(new ArrayList<Element>());
 	protected Element currentElement;
 	protected double ticksExisted = 0;
-	protected boolean shiftDown = false;
 	protected Application application;
 	protected Gui parent;
+	
 	protected Camera camera;
 
 	public Gui(Application app)
 	{
 		application = app;
 		parent = null;
-		camera = new Camera(new float[] {0, 0, 0}, new float[] {0, 0, 0, 0, 0, 0}, new float[] {0, 0, 0});
+		camera = new Camera();
 	}
 	public Gui(Gui gui)
 	{
@@ -118,23 +118,17 @@ public abstract class Gui
 		}
 	}
 
-	public int keyPressed(int keyID) 
+	public int keyPressed(int keyID, int mods) 
 	{
 		if(currentElement != null)
 		{
 			return currentElement.keyPressed(keyID);
 		}
-		if(keyID == GLFW_KEY_LEFT_SHIFT|| keyID == GLFW_KEY_RIGHT_SHIFT)
-		{
-			shiftDown = true;
-			return -1;
-		}
 		if(keyID == GLFW_KEY_ESCAPE)
 		{
-			if(shiftDown)
+			if((mods & 1) == 1)
 			{
 				application.setFullscreen(application.getFullscreenMode() < 2 ? 2 : 0);
-				shiftDown = false;
 			}
 			else
 			{
@@ -162,15 +156,11 @@ public abstract class Gui
 		return -1;
 	}
 
-	public void keyRelease(int keyID)
+	public void keyRelease(int keyID, int mods)
 	{
 		if(currentElement != null)
 		{
 			currentElement.keyRelease(keyID);
-		}
-		if(keyID == GLFW_KEY_LEFT_SHIFT || keyID == GLFW_KEY_RIGHT_SHIFT)
-		{
-			shiftDown = false;
 		}
 	}
 
