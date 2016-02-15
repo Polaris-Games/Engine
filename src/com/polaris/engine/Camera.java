@@ -1,6 +1,6 @@
 package com.polaris.engine;
 
-import static com.polaris.engine.render.Renderer.gl3d;
+import static com.polaris.engine.render.Window.gl3d;
 import static org.lwjgl.opengl.GL11.glRotatef;
 import static org.lwjgl.opengl.GL11.glTranslatef;
 
@@ -20,7 +20,7 @@ public class Camera
 	
 	public void gl3d(float f, float g, float h)
 	{
-		Renderer.gl3d(f, g, h);
+		gl3d(f, g, h);
 		
 		glTranslatef(0.0F, 0.0F, -0.1F);
 		glRotatef(prevPitch + (pitch - prevPitch), 1.0F, 0.0F, 0.0F);

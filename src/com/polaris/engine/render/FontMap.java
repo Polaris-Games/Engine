@@ -1,7 +1,5 @@
 package com.polaris.engine.render;
 
-import static com.polaris.engine.render.Renderer.drawColorHRectUV;
-import static com.polaris.engine.render.Renderer.drawRectUV;
 import static com.polaris.engine.render.Renderer.getAlpha;
 import static com.polaris.engine.render.Renderer.getBlue;
 import static com.polaris.engine.render.Renderer.getGreen;
@@ -251,7 +249,7 @@ public class FontMap implements ITexture
 				xOffset = letter.getXOffset() * pointFont;
 				yOffset = letter.getYOffset() * pointFont;
 				if(whatchars.charAt(i) != ' ')
-					drawRectUV(x + xOffset, y + yOffset, x + width + xOffset, y + letter.getHeight() * pointFont + yOffset, z, letter.getTexture());
+					Draw.rectUV(x + xOffset, y + yOffset, x + width + xOffset, y + letter.getHeight() * pointFont + yOffset, z, letter.getTexture());
 				x += width + xOffset;
 			}
 		}
@@ -286,7 +284,7 @@ public class FontMap implements ITexture
 				}
 				yOffset = letter.getYOffset() * pointFont;
 				if(whatchars.charAt(i) != ' ')
-					drawColorHRectUV(x + xOffset, y + yOffset, x + width + xOffset, y + letter.getHeight() * pointFont + yOffset, z, letter.getTexture(), getRed() + (redShift * width), getGreen() + (greenShift * width), getBlue() + (blueShift * width), getAlpha() + (alphaShift * width));
+					Draw.colorHRectUV(x + xOffset, y + yOffset, x + width + xOffset, y + letter.getHeight() * pointFont + yOffset, z, letter.getTexture(), getRed() + (redShift * width), getGreen() + (greenShift * width), getBlue() + (blueShift * width), getAlpha() + (alphaShift * width));
 				x += width + xOffset;
 				pastLetter = letter;
 			}

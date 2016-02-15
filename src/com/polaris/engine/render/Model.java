@@ -1,8 +1,8 @@
 package com.polaris.engine.render;
 
-import static com.polaris.engine.render.Renderer.*;
 import static com.polaris.engine.render.Renderer.glBegin;
-import static com.polaris.engine.render.Renderer.vertexUV;
+import static com.polaris.engine.render.Renderer.glVertex;
+import static com.polaris.engine.render.Texture.glBindTexture;
 import static org.lwjgl.opengl.GL11.glBegin;
 import static org.lwjgl.opengl.GL11.glEnd;
 import static org.lwjgl.opengl.GL11.glPopMatrix;
@@ -14,15 +14,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
-import javax.imageio.ImageIO;
 
 import org.lwjgl.opengl.GL11;
-
-import com.polaris.engine.util.Helper;
 
 public abstract class Model implements ITexture
 {
@@ -69,7 +62,7 @@ public abstract class Model implements ITexture
 			face = faceArray[i];
 			for(j = 0; j < face.length; j+=2)
 			{
-				vertexUV(vertexArray[face[j]][0], vertexArray[face[j]][1], vertexArray[face[j]][2], textureCoordArray[face[j + 1]][0], textureCoordArray[face[j + 1]][1]);
+				glVertex(vertexArray[face[j]][0], vertexArray[face[j]][1], vertexArray[face[j]][2], textureCoordArray[face[j + 1]][0], textureCoordArray[face[j + 1]][1]);
 			}
 		}
 		glEnd();

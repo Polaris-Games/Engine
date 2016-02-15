@@ -1,9 +1,7 @@
 package com.polaris.engine.gui;
 
+import static com.polaris.engine.render.Window.gl2d;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
-import static com.polaris.engine.render.Renderer.*;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +9,8 @@ import java.util.List;
 
 import com.polaris.engine.Application;
 import com.polaris.engine.Camera;
+import com.polaris.engine.options.Settings;
+import com.polaris.engine.render.Window;
 
 public abstract class Gui
 {
@@ -128,7 +128,7 @@ public abstract class Gui
 		{
 			if((mods & 1) == 1)
 			{
-				application.setFullscreen(application.getFullscreenMode() < 2 ? 2 : 0);
+				Settings.setNextWindow(Settings.getNextWindow() < 2 ? 2 : 0);
 			}
 			else
 			{
@@ -140,7 +140,7 @@ public abstract class Gui
 				}
 				else
 				{
-					application.close();
+					Window.close();
 				}
 			}
 		}
