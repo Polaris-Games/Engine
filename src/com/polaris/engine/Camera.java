@@ -8,7 +8,7 @@ import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
 
-import com.polaris.engine.render.Renderer;
+import com.polaris.engine.render.OpenGL;
 
 public class Camera 
 {

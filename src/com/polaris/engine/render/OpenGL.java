@@ -75,7 +75,7 @@ import com.polaris.engine.util.Color4d;
 import com.polaris.engine.util.Helper;
 
 
-public class Renderer 
+public class OpenGL 
 {
 
 	private static Color4d currentColor = new Color4d(1, 1, 1, 1);

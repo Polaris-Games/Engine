@@ -54,7 +54,7 @@ public class Texture
 	 * @param location
 	 * @throws IOException
 	 */
-	public static void loadContent() throws IOException
+	public static void loadTextures() throws IOException
 	{
 		for(File file : getTextureDirectory().listFiles())
 		{
@@ -65,9 +65,9 @@ public class Texture
 		}
 	}
 
-	public static Map<String, ByteBuffer> getContent()
+	public static Map<String, ByteBuffer> getTextureData()
 	{
-		Map<String, ByteBuffer> buffers = new HashMap<String, ByteBuffer>();
+		Map<String, ByteBuffer> textureData = new HashMap<String, ByteBuffer>();
 		for(String texture : textures.keySet())
 		{
 			ByteBuffer data;
@@ -79,14 +79,14 @@ public class Texture
 			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, height);
 			data = BufferUtils.createByteBuffer(width.getInt(0) * height.getInt(0) * 4);
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			buffers.put(texture, data);
+			textureData.put(texture, data);
 			glBindTexture(0);
 			glDeleteTextures(tex.getTextureID());
 		}
-		return buffers;
+		return textureData;
 	}
 
-	public static void reinitContent(Map<String, ByteBuffer> data)
+	public static void loadTextureData(Map<String, ByteBuffer> textureData)
 	{
 		for(String texture : textures.keySet())
 		{
@@ -100,8 +100,8 @@ public class Texture
 			glBindTexture(tex.getTextureID());
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width.getInt(0), height.getInt(0), 0, GL_RGBA, GL_UNSIGNED_BYTE, data.get(texture));
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width.getInt(0), height.getInt(0), GL_RGBA, GL_UNSIGNED_BYTE, data.get(texture));
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width.getInt(0), height.getInt(0), 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData.get(texture));
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width.getInt(0), height.getInt(0), GL_RGBA, GL_UNSIGNED_BYTE, textureData.get(texture));
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}

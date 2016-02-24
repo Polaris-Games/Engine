@@ -15,10 +15,10 @@ public abstract class MultiButton extends Button
 	}
 
 	@Override
-	public boolean mouseClick(int mouseId)
+	public int mouseClick(int mouseId)
 	{
 		buttonText = modeNames[(mode = Helper.getListLoc(mode + 1, modeNames.length))];
-		return false;
+		return 2;
 	}
 
 	public int getMode()

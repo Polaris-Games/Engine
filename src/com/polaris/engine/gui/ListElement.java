@@ -60,7 +60,7 @@ public abstract class ListElement<T> extends Element
 	}
 
 	@Override
-	public boolean mouseClick(int mouseId) 
+	public int mouseClick(int mouseId) 
 	{
 		if(!clicked)
 		{
@@ -70,7 +70,7 @@ public abstract class ListElement<T> extends Element
 		{
 			clicked = false;
 		}
-		return false;
+		return 2;
 	}
 
 	@SuppressWarnings("unchecked")

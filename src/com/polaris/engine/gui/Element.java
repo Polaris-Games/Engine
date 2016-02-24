@@ -29,21 +29,75 @@ public abstract class Element
 	
 	public abstract void render(double delta);
 	
-	public abstract boolean mouseClick(int mouseId);
+	public final boolean nMouseClick(int mouseId)
+	{
+		int flag = mouseClick(mouseId);
+		if(flag > 1)
+			gui.elementUpdate(this, 0);
+		return flag % 2 == 1;
+	}
 	
-	public boolean mouseHeld(int mouseId) {return false;}
+	protected int mouseClick(int mouseId) {return 0;}
 	
-	public void mouseRelease(int mouseId) {}
+	public final boolean nMouseHeld(int mouseId)
+	{
+		int flag = mouseHeld(mouseId);
+		if(flag > 1)
+			gui.elementUpdate(this, 1);
+		return flag % 2 == 1;
+	}
 	
-	public void mouseScroll(int mouseMove) {}
+	protected int mouseHeld(int mouseId) {return 0;}
 	
-	public void mouseOutOfRegion(int mouseId) {}
+	public final boolean nMouseRelease(int mouseId)
+	{
+		int flag = mouseRelease(mouseId);
+		if(flag > 1)
+			gui.elementUpdate(this, 2);
+		return flag % 2 == 1;
+	}
 	
-	public int keyPressed(int keyId) {return 0;}
+	protected int mouseRelease(int mouseId) {return 0;}
 	
-	public int keyHeld(int keyId) {return 0;}
+	public final boolean nMouseScroll(double xOffset, double yOffset)
+	{
+		int flag = mouseScroll(xOffset, yOffset);
+		if(flag > 1)
+			gui.elementUpdate(this, 3);
+		return flag % 2 == 1;
+	}
 	
-	public void keyRelease(int keyId) {}
+	protected int mouseScroll(double xOffset, double yOffset) {return 0;}
+	
+	public final int nKeyPressed(int keyId, int mods)
+	{
+		int flag = keyPressed(keyId, mods);
+		if((flag & 0x0000FFFF) == 1)
+			gui.elementUpdate(this, 4);
+		return flag >> 16;
+	}
+	
+	protected int keyPressed(int keyId, int mods) {return 0;}
+	
+	public final int nKeyHeld(int keyId, int called, int mods)
+	{
+		int flag = keyHeld(keyId, called, mods);
+		if((flag & 0x0000FFFF) == 1)
+			gui.elementUpdate(this, 5);
+		return flag >> 16;
+	}
+	
+	protected int keyHeld(int keyId, int called, int mods) {return 0;}
+	
+	public final boolean nKeyRelease(int keyId, int mods)
+	{
+		int flag = keyRelease(keyId, mods);
+		if(flag > 1)
+			gui.elementUpdate(this, 6);
+		return flag % 2 == 1;
+	}
+	
+	protected int keyRelease(int keyId, int mods) {return 0;}
 	
 	public boolean isInRegion()
 	{

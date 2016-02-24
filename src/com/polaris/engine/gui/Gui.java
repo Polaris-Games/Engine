@@ -3,9 +3,10 @@ package com.polaris.engine.gui;
 import static com.polaris.engine.render.Window.gl2d;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import com.polaris.engine.Application;
 import com.polaris.engine.Camera;
@@ -15,12 +16,12 @@ import com.polaris.engine.render.Window;
 public abstract class Gui
 {
 
-	private volatile List<Element> elementList = Collections.synchronizedList(new ArrayList<Element>());
+	private List<Element> elementList = new ArrayList<Element>();
 	protected Element currentElement;
 	protected double ticksExisted = 0;
 	protected Application application;
 	protected Gui parent;
-	
+
 	protected Camera camera;
 
 	public Gui(Application app)
@@ -29,6 +30,7 @@ public abstract class Gui
 		parent = null;
 		camera = new Camera();
 	}
+
 	public Gui(Gui gui)
 	{
 		this(gui.application);
@@ -40,91 +42,70 @@ public abstract class Gui
 	public void update(double delta)
 	{
 		ticksExisted += delta;
-		try
+		for(Element element : elementList)
 		{
-			for(int i = 0; i < elementList.size(); i++)
-			{
-				Element e = elementList.get(i);
-				e.update(delta);
-			}
+			element.update(delta);
 		}
-		catch(Exception e) {}
 	}
 
 	public void render(double delta)
 	{
 		gl2d();
-		try
+		for(Element element : elementList)
 		{
-			for(int i = 0; i < elementList.size(); i++)
-			{
-				Element e = elementList.get(i);
-				e.render(delta);
-			}
+			element.render(delta);
 		}
-		catch(Exception e) {}
 	}
 
 	public boolean mouseClick(int mouseId)
 	{
-		try
+		for(Element element : elementList)
 		{
-			for(int i = 0; i < elementList.size(); i++)
+			if(element.isInRegion())
 			{
-				Element e = elementList.get(i);
-				if(e.isInRegion())
+				boolean flag = element.nMouseClick(mouseId);
+				if(flag && element != currentElement)
 				{
-					boolean flag = e.mouseClick(mouseId);
-					if(flag && e != currentElement)
-					{
-						unbindCurrentElement(e);
-					}
-					elementUpdate(e);
-					return flag;
+					unbindCurrentElement(element);
 				}
-				else
-				{
-					e.mouseOutOfRegion(mouseId);
-				}
+				return flag;
 			}
 		}
-		catch(Exception e) {}
 		unbindCurrentElement();
 		return false;
 	}
 
 	public void mouseHeld(int mouseId)
 	{
-		if(currentElement != null)
+		if(currentElement != null && currentElement.nMouseHeld(mouseId))
 		{
-			currentElement.mouseHeld(mouseId);
+			unbindCurrentElement();
 		}
 	}
 
 	public void mouseRelease(int mouseId)
 	{
-		if(currentElement != null)
+		if(currentElement != null && !currentElement.nMouseRelease(mouseId))
 		{
-			currentElement.mouseRelease(mouseId);
 			unbindCurrentElement();
 		}
 	}
 
 	public void mouseScroll(double xOffset, double yOffset) 
 	{
-		if(currentElement != null)
+		if(currentElement != null && currentElement.nMouseScroll(xOffset, yOffset))
 		{
-			//currentElement.mouseScroll(xOffset, yOffset);
+			unbindCurrentElement();
 		}
 	}
 
-	public int keyPressed(int keyID, int mods) 
+	public int keyPressed(int keyId, int mods) 
 	{
 		if(currentElement != null)
 		{
-			return currentElement.keyPressed(keyID);
+			return currentElement.keyPressed(keyId, mods);
 		}
-		if(keyID == GLFW_KEY_ESCAPE)
+		if(keyId == GLFW_KEY_ESCAPE)
 		{
 			if((mods & 1) == 1)
 			{
@@ -144,23 +125,23 @@ public abstract class Gui
 				}
 			}
 		}
-		return -1;
+		return 20;
 	}
 
-	public int keyHeld(int keyID, int called)
+	public int keyHeld(int keyId, int called, int mods)
 	{
 		if(currentElement != null)
 		{
-			return currentElement.keyHeld(keyID);
+			return currentElement.nKeyHeld(keyId, called, mods);
 		}
-		return -1;
+		return 20;
 	}
 
-	public void keyRelease(int keyID, int mods)
+	public void keyRelease(int keyId, int mods)
 	{
-		if(currentElement != null)
+		if(currentElement != null && currentElement.nKeyRelease(keyId, mods))
 		{
-			currentElement.keyRelease(keyID);
+			unbindCurrentElement();
 		}
 	}
 
@@ -209,17 +190,14 @@ public abstract class Gui
 		return elementList.size();
 	}
 
-	public void elementUpdate(Element e) {}
+	public void elementUpdate(Element e, int actionId) {}
 
-	public void clear()
+	public void clearElements()
 	{
 		elementList.clear();
 	}
 
-	protected void reinit()
-	{
-
-	}
+	protected void reinit() {}
 
 	public void close() 
 	{
@@ -235,7 +213,7 @@ public abstract class Gui
 	{
 		return parent;
 	}
-	
+
 	public Camera getCamera()
 	{
 		return camera;

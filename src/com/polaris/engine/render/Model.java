@@ -1,7 +1,7 @@
 package com.polaris.engine.render;
 
-import static com.polaris.engine.render.Renderer.glBegin;
-import static com.polaris.engine.render.Renderer.glVertex;
+import static com.polaris.engine.render.OpenGL.glBegin;
+import static com.polaris.engine.render.OpenGL.glVertex;
 import static com.polaris.engine.render.Texture.glBindTexture;
 import static org.lwjgl.opengl.GL11.glBegin;
 import static org.lwjgl.opengl.GL11.glEnd;

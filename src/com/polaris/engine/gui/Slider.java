@@ -28,9 +28,9 @@ public abstract class Slider<T> extends Element
 	}
 
 	@Override
-	public boolean mouseClick(int mouseId) 
+	public int mouseClick(int mouseId) 
 	{
-		return false;
+		return 2;
 	}
 
 }

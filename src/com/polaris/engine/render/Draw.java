@@ -6,7 +6,7 @@ import static java.lang.Math.sin;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLE_FAN;
 import static org.lwjgl.opengl.GL11.glEnd;
 import static org.lwjgl.opengl.GL11.glVertex3d;
-import static com.polaris.engine.render.Renderer.*;
+import static com.polaris.engine.render.OpenGL.*;
 import static com.polaris.engine.render.Texture.*;
 import org.lwjgl.opengl.GL11;
 

@@ -1,10 +1,10 @@
 package com.polaris.engine.render;
 
-import static com.polaris.engine.render.Renderer.getAlpha;
-import static com.polaris.engine.render.Renderer.getBlue;
-import static com.polaris.engine.render.Renderer.getGreen;
-import static com.polaris.engine.render.Renderer.getRed;
-import static com.polaris.engine.render.Renderer.glBegin;
+import static com.polaris.engine.render.OpenGL.getAlpha;
+import static com.polaris.engine.render.OpenGL.getBlue;
+import static com.polaris.engine.render.OpenGL.getGreen;
+import static com.polaris.engine.render.OpenGL.getRed;
+import static com.polaris.engine.render.OpenGL.glBegin;
 import static java.lang.Integer.parseInt;
 import static org.lwjgl.opengl.GL11.glEnd;
 

@@ -1,16 +1,21 @@
 package com.polaris.engine;
 
 import static com.polaris.engine.options.Settings.getNextWindow;
-import static com.polaris.engine.render.Texture.loadContent;
-import static com.polaris.engine.render.Texture.getContent;
-import static com.polaris.engine.render.Texture.reinitContent;
+import static com.polaris.engine.render.OpenGL.glClearBuffers;
+import static com.polaris.engine.render.Texture.getTextureData;
+import static com.polaris.engine.render.Texture.loadTextureData;
+import static com.polaris.engine.render.Texture.loadTextures;
+import static com.polaris.engine.render.Window.addModKey;
 import static com.polaris.engine.render.Window.close;
 import static com.polaris.engine.render.Window.create;
 import static com.polaris.engine.render.Window.destroy;
 import static com.polaris.engine.render.Window.getCurrentWindow;
 import static com.polaris.engine.render.Window.getKey;
+import static com.polaris.engine.render.Window.getModKeys;
 import static com.polaris.engine.render.Window.getTimeAndReset;
+import static com.polaris.engine.render.Window.notModKey;
 import static com.polaris.engine.render.Window.pollEvents;
+import static com.polaris.engine.render.Window.removeModKey;
 import static com.polaris.engine.render.Window.setTime;
 import static com.polaris.engine.render.Window.setupWindow;
 import static com.polaris.engine.render.Window.shouldClose;
@@ -18,9 +23,12 @@ import static com.polaris.engine.render.Window.swapBuffers;
 import static com.polaris.engine.render.Window.updateSize;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.joml.Vector2d;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 
@@ -43,7 +51,7 @@ public abstract class Application
 	protected static double mouseDeltaX;
 	protected static double mouseDeltaY;
 
-	private Map<Integer, Integer> keyboardPress = new HashMap<Integer, Integer>();
+	private Map<Integer, Vector2d> keyboardPress = new HashMap<Integer, Vector2d>();
 	protected Gui currentGui;
 
 	public SoundManager soundManager;
@@ -64,7 +72,7 @@ public abstract class Application
 
 		try
 		{
-			loadContent();
+			loadTextures();
 		}
 		catch(Exception e)
 		{
@@ -74,47 +82,20 @@ public abstract class Application
 
 		init();
 		setTime(0);
-		//soundManager = new SoundManager(this); 
+		soundManager = new SoundManager(this); 
 
 		while(shouldClose())
 		{
 			double delta = getTimeAndReset();
 
-			if(getNextWindow() != getCurrentWindow())
-			{
-				Map<String, ByteBuffer> data = getContent();
-				if(setupWindow(this) == -1)
-					return;
-				reinitContent(data);
-			}
+			if(checkUpdateWindow())
+				break;
+			
 			pollEvents();
-
-			for(Integer key : keyboardPress.keySet())
-			{
-				int j = keyboardPress.get(key);
-				int k = j & 0x0000FFFF;
-				j >>= 16;
-				if(getKey(key) == 1)
-				{
-					if(k-- <= 0)
-					{
-						k = currentGui.keyHeld(key, j);
-						j++;
-						if(k <= 0)
-						{
-							keyboardPress.remove(key);
-							break;
-						}
-					}
-					keyboardPress.put(key, (j << 16) | k);
-				}
-				else
-				{
-					currentGui.keyRelease(key, 0);
-					keyboardPress.remove(key);
-				}
-			}
-
+			
+			handleKeyInput(delta);
+			
+			glClearBuffers();
 			update(delta);
 			render(delta);
 			mouseDeltaX = mouseDeltaY = 0;
@@ -122,6 +103,54 @@ public abstract class Application
 		}
 
 		destroy();
+	}
+	
+	private boolean checkUpdateWindow()
+	{
+		if(getNextWindow() != getCurrentWindow())
+		{
+			Map<String, ByteBuffer> textureData = getTextureData();
+			if(setupWindow(this) == -1)
+				return true;
+			loadTextureData(textureData);
+		}
+		return false;
+	}
+	
+	private void handleKeyInput(double delta)
+	{
+		List<Integer> delKeys = new ArrayList<Integer>();
+		for(Integer key : keyboardPress.keySet())
+		{
+			Vector2d vector = keyboardPress.get(key);
+			
+			if(getKey(key) == 1)
+			{
+				if((vector.x -= delta) <= .015)
+				{
+					System.out.println(getModKeys());
+					vector.x = currentGui.keyHeld(key, (int)vector.y, getModKeys()) / 60d;
+					vector.y++;
+					if(vector.x <= 0)
+					{
+						if(notModKey(key))
+							delKeys.add(key);
+					}
+				}
+			}
+			else
+			{
+				if(!notModKey(key))
+					removeModKey(key);
+				currentGui.keyRelease(key, getModKeys());
+				delKeys.add(key);
+			}
+		}
+		
+		for(int i = 0; i < delKeys.size(); i++)
+		{
+			keyboardPress.remove(delKeys.get(i));
+		}
 	}
 
 	/**
@@ -142,8 +171,6 @@ public abstract class Application
 		currentGui = newGui;
 	}
 
-
-	
 	protected boolean checkOpenGL()
 	{
 		return glCapabilities.OpenGL33;
@@ -212,15 +239,28 @@ public abstract class Application
 		switch(action)
 		{
 		case 1:
-			int i = currentGui.keyPressed(key, mods);
-			if(i > 0)
+			double timer = currentGui.keyPressed(key, mods) / 60d;
+			if(notModKey(key))
 			{
-				keyboardPress.put(key, i);
+				if(timer > 0)
+				{
+					keyboardPress.put(key, new Vector2d(timer, 0));
+				}
+			}
+			else
+			{
+				addModKey(key);
+				keyboardPress.put(key, new Vector2d(Math.max(0, timer), 0));
 			}
 			break;
 		case 0:
+
 			if(!keyboardPress.containsKey(key))
 			{
+				if(!notModKey(key))
+				{
+					removeModKey(key);
+				}
 				currentGui.keyRelease(key, mods);
 			}
 		}
@@ -229,7 +269,10 @@ public abstract class Application
 	/**
 	 * when the window closes
 	 */
-	public void windowClose() {soundManager.isRunning = false;}
+	public void windowClose() 
+	{
+		soundManager.isRunning = false;
+	}
 
 	/**
 	 * when the window focus changes
@@ -268,7 +311,7 @@ public abstract class Application
 
 	/**
 	 * Update method called every n times / second 
-	 * <br><b>DON'T CALL super.update(mouseX, mouseY, delta) UNLESS YOU IMPLEMENT GUI CLASS STRUCTURE</b>
+	 * <br><b>DON'T CALL super.update(delta) UNLESS YOU IMPLEMENT GUI CLASS STRUCTURE</b>
 	 * @param mouseX : current Mouse Position, updates before method call
 	 * @param mouseY : current Mouse Position, updates before method call
 	 * @param delta : change in time, measured in actual seconds
@@ -280,7 +323,7 @@ public abstract class Application
 
 	/**
 	 * Render method capped at n times / second
-	 * <br><b>DON'T CALL super.render(mouseX, mouseY, delta) UNLESS YOU IMPLEMENT GUI CLASS STRUCTURE</b>
+	 * <br><b>DON'T CALL super.render(delta) UNLESS YOU IMPLEMENT GUI CLASS STRUCTURE</b>
 	 * @param mouseX : current Mouse Position, updates before method call
 	 * @param mouseY : current Mouse Position, updates before method call
 	 * @param delta : change in time, measured in actual seconds

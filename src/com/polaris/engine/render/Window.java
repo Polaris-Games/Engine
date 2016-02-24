@@ -44,8 +44,11 @@ import static org.lwjgl.opengl.GL11.glOrtho;
 import static org.lwjgl.opengl.GL11.glViewport;
 
 import java.nio.IntBuffer;
+import java.util.Arrays;
+import java.util.List;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWCursorEnterCallback;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -71,17 +74,21 @@ public class Window
 	private static Application window = null;
 	private static int currentFullscreen = 0;
 	private static boolean isRunning = true;
-	
+
 	private static int windowWidth = 0;
 	private static int windowHeight = 0;
 	public static final int scaleWidth = 1920;
 	public static final int scaleHeight = 1080;
-	
+
+	private static final List<Integer> modKeys = Arrays.asList(GLFW.GLFW_KEY_LEFT_SHIFT, GLFW.GLFW_KEY_RIGHT_SHIFT, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_RIGHT_CONTROL, GLFW.GLFW_KEY_LEFT_ALT, GLFW.GLFW_KEY_RIGHT_ALT,
+			GLFW.GLFW_KEY_LEFT_SUPER, GLFW.GLFW_KEY_RIGHT_SUPER);
+	private static int currentModKeys = 0;
+
 	public static boolean create()
 	{
 		return glfwInit() == 0;
 	}
-	
+
 	/**
 	 * sets up the environment for a window to be created.
 	 * @return true for success, false otherwise
@@ -141,22 +148,22 @@ public class Window
 		glfwSetWindowRefreshCallback(windowInstance, windowRefresh);
 		glfwSetWindowSizeCallback(windowInstance, windowSize);
 	}
-	
+
 	public static boolean shouldClose()
 	{
 		return glfwWindowShouldClose(windowInstance) == 0 && isRunning;
 	}
-	
+
 	public static void pollEvents()
 	{
 		glfwPollEvents();
 	}
-	
+
 	public static void swapBuffers()
 	{
 		glfwSwapBuffers(windowInstance);
 	}
-	
+
 	/**
 	 * Called to update the windows size
 	 * @param windowInstance
@@ -169,7 +176,7 @@ public class Window
 		windowWidth = width.get();
 		windowHeight = height.get();
 	}
-	
+
 	/**
 	 * Call before performing 2d rendering
 	 */
@@ -199,7 +206,7 @@ public class Window
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 	}
-	
+
 	/**
 	 * close the application
 	 */
@@ -207,41 +214,75 @@ public class Window
 	{
 		isRunning = false;
 	}
-	
+
 	public static void destroy()
 	{
 		glfwDestroyWindow(windowInstance);
 		GL.destroy();
 		glfwTerminate();
 	}
-	
+
 	public static double getTime()
 	{
 		return glfwGetTime();
 	}
-	
+
 	public static void setTime(double time)
 	{
 		glfwSetTime(time);
 	}
-	
+
 	public static double getTimeAndReset()
 	{
 		double delta = glfwGetTime();
 		setTime(0);
 		return delta;
 	}
+
+	public static int getModKeys()
+	{
+		return currentModKeys;
+	}
+
+	public static boolean notModKey(int key)
+	{
+		return !modKeys.contains(key);
+	}
 	
+	public static void addModKey(int key)
+	{
+		for(int i = 0; i < modKeys.size(); i += 2)
+		{
+			if(key == modKeys.get(i) || key == modKeys.get(i + 1))
+			{
+				currentModKeys += (int) (Math.pow(2, i / 2));
+				break;
+			}
+		}
+	}
+	
+	public static void removeModKey(int key)
+	{
+		for(int i = 0; i < modKeys.size(); i += 2)
+		{
+			if(key == modKeys.get(i) || key == modKeys.get(i + 1))
+			{
+				currentModKeys &= ~(int) (Math.pow(2, i / 2));
+				break;
+			}
+		}
+	}
+
 	public static int getWindowWidth()
 	{
 		return windowWidth;
 	}
-	
+
 	public static int getWindowHeight()
 	{
 		return windowHeight;
 	}
-	
+
 	/**
 	 * Set hints to window and others mostly not used with this method
 	 * @param target <br><b>WINDOW</b>
@@ -253,9 +294,14 @@ public class Window
 	 * <br> - <b>GLFW_FLOATING</b> : window is always-on-top (D FALSE)
 	 * @param value : true or false
 	 */
-	protected static void setHint(int target, boolean value)
+	public static void setHint(int target, boolean value)
 	{
 		glfwWindowHint(target, value ? 1 : 0);
+	}
+	
+	public static void setHint(int target, int value)
+	{
+		glfwWindowHint(target, value);
 	}
 
 	/**
@@ -267,19 +313,19 @@ public class Window
 	 * @param share : window share
 	 * @return
 	 */
-	protected static long createAndCenter(int width, int height, String title, int monitor)
+	public static long createAndCenter(int width, int height, String title, int monitor)
 	{
 		long instance = glfwCreateWindow(width, height, title, monitor, windowInstance == -1 ? 0 : windowInstance);
 		GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 		glfwSetWindowPos(instance, (videoMode.width() - width) / 2, (videoMode.height() - height) / 2);
 		return instance;
 	}
-	
+
 	public static int getKey(int key)
 	{
 		return glfwGetKey(windowInstance, key);
 	}
-	
+
 	/**
 	 * @return windows instance
 	 */
@@ -287,12 +333,12 @@ public class Window
 	{
 		return windowInstance;
 	}
-	
+
 	public static int getCurrentWindow()
 	{
 		return currentFullscreen;
 	}
-	
+
 	private static GLFWCursorEnterCallback cursorBounds = new GLFWCursorEnterCallback () {
 
 		public void invoke(long window, int entered) 
