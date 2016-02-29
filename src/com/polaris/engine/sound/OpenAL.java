@@ -9,7 +9,7 @@ import org.lwjgl.openal.ALDevice;
 import com.polaris.engine.Application;
 
 
-public class SoundManager
+public class OpenAL
 {
 
 	private static ALDevice device;
@@ -17,11 +17,32 @@ public class SoundManager
 	private static List<StaticSound> staticSounds = new ArrayList<StaticSound>();
 	private static List<Sound> updateSounds = new ArrayList<Sound>();
 	private static BackgroundSound backgroundSound = null;
+	
+	public static void initAL()
+	{
+		device = ALDevice.create();
+
+		if(device == null || !device.getCapabilities().OpenALC11)
+			throw new RuntimeException("OpenAL Device Opening failed");
+
+		context = ALContext.create(device);
+
+		if(context == null || !context.getCapabilities().OpenAL11)
+			throw new RuntimeException("OpenAL Context Creation failed");
+
+		context.makeCurrentThread();
+	}
+	
+	public static void closeAL()
+	{
+		context.destroy();
+		device.destroy();
+	}
 
 	public boolean isRunning = true;
 	private Application app;
 
-	public SoundManager(Application application)
+	public OpenAL(Application application)
 	{
 		app = application;
 	}

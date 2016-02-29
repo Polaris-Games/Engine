@@ -13,6 +13,7 @@ import com.polaris.engine.collision.MTV;
 import com.polaris.engine.collision.Projection;
 import com.polaris.engine.collision.Shape;
 import com.polaris.engine.util.Helper;
+import com.polaris.engine.world.MoveableObject;
 
 public class PhysicsEngine 
 {

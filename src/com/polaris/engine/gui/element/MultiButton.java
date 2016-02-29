@@ -1,4 +1,4 @@
-package com.polaris.engine.gui;
+package com.polaris.engine.gui.element;
 
 import com.polaris.engine.util.Helper;
 

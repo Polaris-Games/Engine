@@ -34,7 +34,7 @@ import org.lwjgl.opengl.GLCapabilities;
 
 import com.polaris.engine.gui.Gui;
 import com.polaris.engine.options.Settings;
-import com.polaris.engine.sound.SoundManager;
+import com.polaris.engine.sound.OpenAL;
 
 public abstract class Application
 {
@@ -54,7 +54,6 @@ public abstract class Application
 	private Map<Integer, Vector2d> keyboardPress = new HashMap<Integer, Vector2d>();
 	protected Gui currentGui;
 
-	public SoundManager soundManager;
 	private GLCapabilities glCapabilities;
 
 	/**
@@ -82,8 +81,8 @@ public abstract class Application
 
 		init();
 		setTime(0);
-		soundManager = new SoundManager(this); 
-
+		OpenAL.initAL();
+		
 		while(shouldClose())
 		{
 			double delta = getTimeAndReset();
@@ -113,14 +112,14 @@ public abstract class Application
 			if(setupWindow(this) == -1)
 				return true;
 			loadTextureData(textureData);
+			currentGui.reload();
 		}
 		return false;
 	}
 	
 	private void handleKeyInput(double delta)
 	{
-		List<Integer> delKeys = new ArrayList<Integer>();
-		for(Integer key : keyboardPress.keySet())
+		for(Integer key : keyboardPress.keySet().toArray(new Integer[keyboardPress.size()]))
 		{
 			Vector2d vector = keyboardPress.get(key);
 			
@@ -128,13 +127,12 @@ public abstract class Application
 			{
 				if((vector.x -= delta) <= .015)
 				{
-					System.out.println(getModKeys());
 					vector.x = currentGui.keyHeld(key, (int)vector.y, getModKeys()) / 60d;
 					vector.y++;
 					if(vector.x <= 0)
 					{
 						if(notModKey(key))
-							delKeys.add(key);
+							keyboardPress.remove(key);
 					}
 				}
 			}
@@ -143,13 +141,8 @@ public abstract class Application
 				if(!notModKey(key))
 					removeModKey(key);
 				currentGui.keyRelease(key, getModKeys());
-				delKeys.add(key);
+				keyboardPress.remove(key);
 			}
-		}
-		
-		for(int i = 0; i < delKeys.size(); i++)
-		{
-			keyboardPress.remove(delKeys.get(i));
 		}
 	}
 
@@ -271,7 +264,7 @@ public abstract class Application
 	 */
 	public void windowClose() 
 	{
-		soundManager.isRunning = false;
+		OpenAL.closeAL();
 	}
 
 	/**

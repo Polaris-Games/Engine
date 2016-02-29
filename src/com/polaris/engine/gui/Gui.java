@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.polaris.engine.Application;
 import com.polaris.engine.Camera;
+import com.polaris.engine.gui.element.Element;
 import com.polaris.engine.options.Settings;
 import com.polaris.engine.render.Window;
 
@@ -103,7 +104,7 @@ public abstract class Gui
 	{
 		if(currentElement != null)
 		{
-			return currentElement.keyPressed(keyId, mods);
+			return currentElement.nKeyPressed(keyId, mods);
 		}
 		if(keyId == GLFW_KEY_ESCAPE)
 		{
@@ -125,7 +126,7 @@ public abstract class Gui
 				}
 			}
 		}
-		return 20;
+		return -1;
 	}
 
 	public int keyHeld(int keyId, int called, int mods)
@@ -134,7 +135,7 @@ public abstract class Gui
 		{
 			return currentElement.nKeyHeld(keyId, called, mods);
 		}
-		return 20;
+		return -1;
 	}
 
 	public void keyRelease(int keyId, int mods)
@@ -198,6 +199,7 @@ public abstract class Gui
 	}
 
 	protected void reinit() {}
+	public void reload() {}
 
 	public void close() 
 	{

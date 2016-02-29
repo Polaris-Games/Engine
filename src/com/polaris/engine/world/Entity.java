@@ -1,4 +1,4 @@
-package com.polaris.engine;
+package com.polaris.engine.world;
 
 import com.polaris.engine.collision.Shape;
 

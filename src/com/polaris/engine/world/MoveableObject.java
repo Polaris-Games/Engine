@@ -1,5 +1,6 @@
-package com.polaris.engine;
+package com.polaris.engine.world;
 
+import com.polaris.engine.Pos;
 import com.polaris.engine.collision.Shape;
 
 public abstract class MoveableObject

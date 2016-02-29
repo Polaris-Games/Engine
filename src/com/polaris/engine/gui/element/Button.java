@@ -1,4 +1,4 @@
-package com.polaris.engine.gui;
+package com.polaris.engine.gui.element;
 
 
 public abstract class Button extends Element

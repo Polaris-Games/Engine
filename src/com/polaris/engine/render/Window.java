@@ -1,6 +1,7 @@
 package com.polaris.engine.render;
 
 import static com.polaris.engine.options.Settings.getNextWindow;
+import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.glfw.GLFW.GLFW_BLUE_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_GREEN_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_RED_BITS;
@@ -175,6 +176,8 @@ public class Window
 		glfwGetWindowSize(windowInstance, width, height);
 		windowWidth = width.get();
 		windowHeight = height.get();
+		memFree(width);
+		memFree(height);
 	}
 
 	/**
