@@ -17,6 +17,8 @@ import java.io.IOException;
 
 import org.lwjgl.opengl.GL11;
 
+import com.polaris.engine.gamelogic.ModelBounds;
+
 public abstract class Model implements ITexture
 {
 	
@@ -24,6 +26,7 @@ public abstract class Model implements ITexture
 	protected float[][] vertexArray;
 	protected float[][] textureCoordArray;
 	protected boolean supportsQuads;
+	protected ModelBounds bounds;
 	private int textureId;
 
 	public Model(File modelLocation)

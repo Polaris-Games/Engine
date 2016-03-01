@@ -1,5 +1,8 @@
 package com.polaris.engine.render;
 
+import static com.polaris.engine.util.ResourceHelper.newReader;
+import static com.polaris.engine.util.ResourceHelper.newWriter;
+
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
-
-import com.polaris.engine.util.Helper;
 
 public class StitchedMap implements ITexture
 {
@@ -38,7 +39,7 @@ public class StitchedMap implements ITexture
 
 		if(fileLocation.exists() && fileLocation.isFile())
 		{
-			BufferedReader reader = Helper.newReader(fileLocation);
+			BufferedReader reader = newReader(fileLocation);
 			String line = null;
 			while((line = reader.readLine()) != null)
 			{
@@ -58,7 +59,7 @@ public class StitchedMap implements ITexture
 	
 	public void genInfo(File output) throws IOException
 	{
-		BufferedWriter writer = Helper.newWriter(output);
+		BufferedWriter writer = newWriter(output);
 		for(String textureName : textureMap.keySet())
 		{
 			Texture texture = textureMap.get(textureName);
@@ -75,7 +76,7 @@ public class StitchedMap implements ITexture
 
 	public void loadInfo(File input) throws IOException
 	{
-		BufferedReader reader = Helper.newReader(input);
+		BufferedReader reader = newReader(input);
 		String line = null;
 		textureMap = new HashMap<String, Texture>();
 		while((line = reader.readLine()) != null)

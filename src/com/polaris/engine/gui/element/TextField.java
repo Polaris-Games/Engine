@@ -8,11 +8,22 @@ public class TextField extends Element
 	
 	public TextField(double x, double y, double width, double height)
 	{
-		super(x, y, width, height);
+		this(x, y, 0, width, height);
 	}
+	
+	public TextField(double x, double y, double z, double width, double height)
+	{
+		super(x, y, z, width, height);
+	}
+	
 	public TextField(double x, double y, double width, double height, String text)
 	{
-		super(x, y, width, height);
+		this(x, y, 0, width, height);
+	}
+	
+	public TextField(double x, double y, double z, double width, double height, String text)
+	{
+		super(x, y, z, width, height);
 		nullText = text;
 	}
 

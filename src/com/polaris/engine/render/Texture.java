@@ -41,6 +41,7 @@ import org.lwjgl.opengl.ARBTextureStorage;
 import org.lwjgl.opengl.GL11;
 
 import com.polaris.engine.util.Helper;
+import com.polaris.engine.util.ResourceHelper;
 
 public class Texture
 {
@@ -58,7 +59,7 @@ public class Texture
 	{
 		for(File file : getTextureDirectory().listFiles())
 		{
-			if(file.isDirectory() && !Helper.fileStartsWith(file, "stitched", "models"))
+			if(file.isDirectory() && !ResourceHelper.fileStartsWith(file, "stitched", "models"))
 			{
 				loadTextures(file, !file.getName().startsWith("$"));
 			}

@@ -1,13 +1,16 @@
 package com.polaris.engine.gui.element;
 
-import static com.polaris.engine.Application.*;
-import com.polaris.engine.Pos;
+import static com.polaris.engine.Application.getMouseX;
+import static com.polaris.engine.Application.getMouseY;
+
+import org.joml.Vector3d;
+
 import com.polaris.engine.gui.Gui;
 
 public abstract class Element 
 {
 	
-	protected Pos pos;
+	protected Vector3d position;
 	protected double elementWidth = 0;
 	protected double elementHeight = 0;
 	protected int elementId = 0;
@@ -17,7 +20,12 @@ public abstract class Element
 	
 	public Element(double x, double y, double width, double height)
 	{
-		pos = new Pos(x, y);
+		this(x, y, 0, width, height);
+	}
+	
+	public Element(double x, double y, double z, double width, double height)
+	{
+		position = new Vector3d(x, y, z);
 		elementWidth = width;
 		elementHeight = height;
 	}
@@ -102,7 +110,7 @@ public abstract class Element
 	
 	public boolean isInRegion()
 	{
-		return getMouseX() >= pos.getX() && getMouseY() >= pos.getY() && getMouseX() <= (pos.getX() + elementWidth) && getMouseY() <= (pos.getY() + elementHeight);
+		return getMouseX() >= position.x && getMouseY() >= position.y && getMouseX() <= (position.x + elementWidth) && getMouseY() <= (position.y + elementHeight);
 	}
 
 	public void setId(int id) {elementId = id;}

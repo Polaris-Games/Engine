@@ -1,13 +1,15 @@
 package com.polaris.engine.render;
 
+import static com.polaris.engine.util.ImageHelper.injectBufferedImage;
+import static com.polaris.engine.util.ImageHelper.resize;
+import static com.polaris.engine.util.MathHelper.log;
+
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.polaris.engine.util.Helper;
 
 public class PackedImage 
 {
@@ -32,9 +34,9 @@ public class PackedImage
 			maxHeight = Math.max(image.getHeight(), maxHeight);
 			maxWidth = Math.max(image.getWidth(), maxWidth);
 		}
-		maxWidth = (int) Math.pow(2, (int) Math.ceil(Helper.log(2, maxWidth)));
-		maxHeight = (int) Math.pow(2, (int) Math.ceil(Helper.log(2, maxHeight)));
-		defaultWidth = defaultHeight = (int) Math.pow(2, (int) Helper.log(2, Math.sqrt(totalArea)));
+		maxWidth = (int) Math.pow(2, (int) Math.ceil(log(2, maxWidth)));
+		maxHeight = (int) Math.pow(2, (int) Math.ceil(log(2, maxHeight)));
+		defaultWidth = defaultHeight = (int) Math.pow(2, (int) log(2, Math.sqrt(totalArea)));
 		defaultWidth = Math.max(maxWidth, defaultWidth);
 		defaultHeight = Math.max(maxHeight, defaultHeight);
 		switchGrowth = defaultWidth < defaultHeight;
@@ -98,7 +100,7 @@ public class PackedImage
 							defaultHeight *= 2;
 							rowSize++;
 						}
-						stitchedImage = Helper.resize(stitchedImage, defaultWidth, defaultHeight);
+						stitchedImage = resize(stitchedImage, defaultWidth, defaultHeight);
 						moveX = moveY = 0;
 						currentCell = currentRow = 0;
 					}
@@ -120,7 +122,7 @@ public class PackedImage
 				x += rows.get(currentRow).cells.get(i).width;
 			}
 			textureMap.put(imageName, new Texture(x, y, x + image.getWidth(), y + image.getHeight()));
-			Helper.injectBufferedImage(stitchedImage, image, x, y);
+			injectBufferedImage(stitchedImage, image, x, y);
 		}
 		for(String imageName : textureMap.keySet())
 		{

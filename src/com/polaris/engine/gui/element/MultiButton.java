@@ -1,6 +1,6 @@
 package com.polaris.engine.gui.element;
 
-import com.polaris.engine.util.Helper;
+import static com.polaris.engine.util.ListHelper.*;
 
 public abstract class MultiButton extends Button
 {
@@ -17,7 +17,7 @@ public abstract class MultiButton extends Button
 	@Override
 	public int mouseClick(int mouseId)
 	{
-		buttonText = modeNames[(mode = Helper.getListLoc(mode + 1, modeNames.length))];
+		buttonText = modeNames[(mode = getListLoc(mode + 1, modeNames.length))];
 		return 2;
 	}
 
@@ -28,7 +28,7 @@ public abstract class MultiButton extends Button
 
 	public void setMode(int m)
 	{
-		buttonText = modeNames[(mode = Helper.getListLoc(m, modeNames.length))];
+		buttonText = modeNames[(mode = getListLoc(m, modeNames.length))];
 	}
 	
 }

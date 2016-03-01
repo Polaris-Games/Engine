@@ -23,6 +23,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 
 import com.polaris.engine.util.Helper;
+import com.polaris.engine.util.ResourceHelper;
 
 public class Shader
 {
@@ -63,7 +64,7 @@ public class Shader
 	private int createShader(String resource, int type) throws IOException
 	{
 		int shader = glCreateShaderObjectARB(type);
-		ByteBuffer source = Helper.ioResourceToByteBuffer(resource, 1024);
+		ByteBuffer source = ResourceHelper.ioResourceToByteBuffer(resource, 1024);
 		PointerBuffer strings = BufferUtils.createPointerBuffer(1);
 		IntBuffer lengths = BufferUtils.createIntBuffer(1);
 		strings.put(0, source);
