@@ -9,23 +9,18 @@ public abstract class SimpleCollision
 {
 	
 	private double radius = 0;
-	private Vector3d centerPosition;
+	private Shape enclosedShape;
 	
-	public SimpleCollision(double r, Vector2d position)
+	public SimpleCollision(double r, Shape shape)
 	{
 		radius = r;
-		centerPosition = new Vector3d(position, 0);
-	}
-	
-	public SimpleCollision(double r, Vector3d position)
-	{
-		radius = r;
-		centerPosition = position;
+		enclosedShape = shape;
 	}
 	
 	public boolean isColliding(SimpleCollision collision)
 	{
-		return GeometryHelper.distanceFromTo(centerPosition, collision.centerPosition) < collision.radius + radius;
+		double length = collision.radius + radius;
+		return GeometryHelper.distanceFromToSquared(enclosedShape.getCenter(), collision.enclosedShape.getCenter()) < length*length;
 	}
 
 }
