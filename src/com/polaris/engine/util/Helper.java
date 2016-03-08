@@ -57,6 +57,8 @@ public class Helper
 	 */
 	public static final double HALFPI = Math.PI / 2;
 	
+	public static final double QUARTERPI = Math.PI / 4;
+	
 	public static final ClassLoader classLoader = Helper.class.getClassLoader();
 	
 	public static final Map<String, Constructor<? extends Model>> modelFormats = new HashMap<String, Constructor<? extends Model>>();

@@ -34,6 +34,7 @@ import org.lwjgl.opengl.GLCapabilities;
 
 import com.polaris.engine.gui.Gui;
 import com.polaris.engine.options.Settings;
+import com.polaris.engine.render.OpenGL;
 import com.polaris.engine.sound.OpenAL;
 
 public abstract class Application
@@ -81,8 +82,8 @@ public abstract class Application
 
 		init();
 		setTime(0);
-		OpenAL.initAL();
-		
+		//OpenAL.initAL();
+		OpenGL.glDefaults();
 		while(shouldClose())
 		{
 			double delta = getTimeAndReset();

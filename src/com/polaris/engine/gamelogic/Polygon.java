@@ -4,7 +4,7 @@ public class Polygon extends Shape
 {
 
 	@Override
-	public Axis[] getAxes(double rotationX, double rotationY, double rotationZ) 
+	public Axis[] getAxes() 
 	{
 		return null;
 	}

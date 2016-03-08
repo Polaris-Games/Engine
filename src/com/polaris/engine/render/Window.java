@@ -176,8 +176,6 @@ public class Window
 		glfwGetWindowSize(windowInstance, width, height);
 		windowWidth = width.get();
 		windowHeight = height.get();
-		memFree(width);
-		memFree(height);
 	}
 
 	/**

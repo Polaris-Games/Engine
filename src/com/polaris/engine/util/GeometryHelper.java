@@ -8,11 +8,6 @@ public class GeometryHelper
 	{
 		return x1 <= x && y1 <= y && x1 + w >= x && y1 + h >= y;
 	}
-
-	public static double rotate(double x, double y, double axis) 
-	{
-		return x * Math.cos(axis) + y * Math.sin(axis);
-	}
 	
 	public static double distanceFromTo(Vector2d startPoint, Vector2d endPoint)
 	{
@@ -84,6 +79,16 @@ public class GeometryHelper
 		return x * x + y * y;
 	}
 	
+	public static double distanceToSquared(Vector2d point)
+	{
+		return point.x * point.x + point.y * point.y;
+	}
+	
+	public static double distanceToSquared(Vector3d point)
+	{
+		return point.x * point.x + point.y * point.y + point.z * point.z;
+	}
+	
 	public static Vector2d center(Vector2d ... vectors)
 	{
 		assert vectors.length > 1;
@@ -97,7 +102,7 @@ public class GeometryHelper
 			xmin = Math.min(xmin, vectors[i].x);
 			xmax = Math.max(xmax, vectors[i].x);
 			ymin = Math.min(ymin, vectors[i].y);
-			ymax = Math.min(ymax, vectors[i].y);
+			ymax = Math.max(ymax, vectors[i].y);
 		}
 		
 		return new Vector2d((xmin + xmax) / 2, (ymin + ymax) / 2);

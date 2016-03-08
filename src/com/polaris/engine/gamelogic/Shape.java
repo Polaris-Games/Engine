@@ -4,14 +4,22 @@ import org.joml.Vector3d;
 
 public abstract class Shape
 {
-	protected Vector3d centerPosition;
+	protected Vector3d position;
+	protected Vector3d rotation;
+	protected double circleRadius;
 	
-	public Vector3d getCenter()
+	public Vector3d getPosition()
 	{
-		return centerPosition;
+		return position;
 	}
 	
-	public abstract Axis[] getAxes(double rotationX, double rotationY, double rotationZ);
+	public abstract Axis[] getAxes();
 	public abstract Projection project(Axis axis);
+	
+	public boolean isSimpleColliding(Shape collision)
+	{
+		double length = collision.circleRadius + circleRadius;
+		return getPosition().distanceSquared(collision.getPosition()) < length*length;
+	}
 
 }
