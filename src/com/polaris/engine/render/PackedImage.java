@@ -121,7 +121,7 @@ public class PackedImage
 			{
 				x += rows.get(currentRow).cells.get(i).width;
 			}
-			textureMap.put(imageName, new Texture(x, y, x + image.getWidth(), y + image.getHeight()));
+			textureMap.put(imageName.substring(0, imageName.lastIndexOf('.')), new Texture(x, y, x + image.getWidth(), y + image.getHeight()));
 			injectBufferedImage(stitchedImage, image, x, y);
 		}
 		for(String imageName : textureMap.keySet())

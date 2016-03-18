@@ -23,9 +23,7 @@ import static com.polaris.engine.render.Window.swapBuffers;
 import static com.polaris.engine.render.Window.updateSize;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.joml.Vector2d;
@@ -35,6 +33,7 @@ import org.lwjgl.opengl.GLCapabilities;
 import com.polaris.engine.gui.Gui;
 import com.polaris.engine.options.Settings;
 import com.polaris.engine.render.OpenGL;
+import com.polaris.engine.render.Window;
 import com.polaris.engine.sound.OpenAL;
 
 public abstract class Application
@@ -183,10 +182,10 @@ public abstract class Application
 	 */
 	public void cursorMove(double mX, double mY) 
 	{
-		mouseDeltaX = mX - mouseX;
-		mouseDeltaY = mY - mouseY;
-		mouseX = mX;
-		mouseY = mY;
+		mouseDeltaX = (mX - mouseX) * Window.scaleWidth / Window.getWindowWidth();
+		mouseDeltaY = (mY - mouseY) * Window.scaleHeight / Window.getWindowHeight();
+		mouseX = mX * Window.scaleWidth / Window.getWindowWidth();
+		mouseY = mY* Window.scaleHeight / Window.getWindowHeight();
 	}
 
 	/**

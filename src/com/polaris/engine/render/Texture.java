@@ -57,6 +57,7 @@ public class Texture
 	 */
 	public static void loadTextures() throws IOException
 	{
+		new File(getTextureDirectory(), "stitched").mkdir();
 		for(File file : getTextureDirectory().listFiles())
 		{
 			if(file.isDirectory() && !ResourceHelper.fileStartsWith(file, "stitched", "models"))
@@ -150,7 +151,8 @@ public class Texture
 				texture.setTextureID(createTextureId(savedImage, false));
 				textures.put(title, texture);
 			}
-
+			new File(getTextureDirectory(), "stitched/" + title + ".png").createNewFile();
+			new File(getTextureDirectory(), "stitched/" + title + ".info").createNewFile();
 			ImageIO.write(savedImage, "PNG", new File(getTextureDirectory(), "stitched/" + title + ".png"));
 			((StitchedMap)texture).genInfo(new File(getTextureDirectory(), "stitched/" + title + ".info"));
 		}

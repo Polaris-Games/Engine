@@ -3,8 +3,8 @@ package com.polaris.engine.gui.element;
 public class TextField extends Element
 {
 
-	protected String text;
-	protected String nullText = "";
+	protected String text = "";
+	protected String nullText = null;
 	
 	public TextField(double x, double y, double width, double height)
 	{
@@ -30,7 +30,7 @@ public class TextField extends Element
 	@Override
 	public void update(double delta) 
 	{
-		
+		super.update(delta);
 	}
 
 	@Override

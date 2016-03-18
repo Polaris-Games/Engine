@@ -139,7 +139,7 @@ public class Draw
 		glVertex(x1, y1, z, texture.getMaxU(), texture.getMaxV());
 		glVertex(x1, y, z, texture.getMaxU(), texture.getMinV());
 	}
-
+	
 	/**
 	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
 	 * @param x
@@ -195,6 +195,80 @@ public class Draw
 		glVertex(x, y1, z, u, v1);
 		glVertex(x1, y1, z, u1, v1);
 		glVertex(x1, y, z, u1, v);
+	}
+	
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param shiftToColor
+	 */
+	public static void colorHRect(double x, double y, double x1, double y1, double z, Color4d shiftToColor)
+	{
+		glVertex3d(x, y, z);
+		glVertex3d(x, y1, z);
+		glVertex(x1, y1, z, shiftToColor);
+		glVertex3d(x1, y, z);
+	}
+
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
+	public static void colorHRect(double x, double y, double x1, double y1, double z, double r, double g, double b, double a)
+	{
+		glVertex3d(x, y, z);
+		glVertex3d(x, y1, z);
+		glVertex(x1, y1, z, r, g, b, a);
+		glVertex3d(x1, y, z);
+	}
+
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param shiftToColor
+	 */
+	public static void colorVRect(double x, double y, double x1, double y1, double z, Color4d shiftToColor)
+	{
+		glVertex3d(x1, y, z);
+		glVertex3d(x, y, z);
+		glVertex(x, y1, z, shiftToColor);
+		glVertex3d(x1, y1, z);
+	}
+
+	/**
+	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
+	 * @param x
+	 * @param y
+	 * @param x1
+	 * @param y1
+	 * @param z
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
+	public static void colorVRect(double x, double y, double x1, double y1, double z, double r, double g, double b, double a)
+	{
+		glVertex3d(x1, y, z);
+		glVertex3d(x, y, z);
+		glVertex(x, y1, z, r, g, b, a);
+		glVertex3d(x1, y1, z);
 	}
 
 	/**

@@ -114,6 +114,7 @@ public class OpenGL
 	public static void glClearBuffers()
 	{
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glColor(1, 1, 1, 1);
 	}
 
 	/**
@@ -127,7 +128,7 @@ public class OpenGL
 		glClearDepth(1.0f);
 		glClearStencil(0);
 		glEnable(GL_ALPHA_TEST);
-		glAlphaFunc(GL_GREATER, .01f);
+		glAlphaFunc(GL_GREATER, .05f);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
 		glDisable(GL_DITHER);
@@ -244,7 +245,7 @@ public class OpenGL
 	 */
 	public static void glVertex(double x, double y, double z, double r, double g, double b, double a)
 	{
-		glColor(r, g, b);
+		glColor(r, g, b, a);
 		glVertex3d(x, y, z);
 	}
 
