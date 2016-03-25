@@ -1,43 +1,44 @@
 package com.polaris.engine.network.server;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.polaris.engine.network.NetworkManager;
 import com.polaris.engine.network.Packet;
+import com.polaris.engine.network.SidedNetwork;
 
 public class Connection
 {
 
-	private NetworkManager networkManager;
+	private SidedNetwork<? extends ServerNetworkManager> network;
 	private Socket socket;
-	private InputStream intakeStream;
-	private OutputStream outtakeStream;
+	private InputStream inputStream;
+	private OutputStream outputStream;
 	private String connectionId;
 	private LinkedBlockingQueue<Packet> packetsToSend;
 
-	public Connection(NetworkManager manager, Socket socket) throws IOException
+	public Connection(SidedNetwork<? extends ServerNetworkManager> sidedNetwork, Socket socket) throws IOException
 	{
-		this(manager, socket, 4096);
-	}
-
-	public Connection(NetworkManager manager, Socket socket, int bufferedSize) throws IOException
-	{
-		this.networkManager = manager;
+		this.network = sidedNetwork;
 		this.socket = socket;
-		this.intakeStream = socket.getInputStream();
-		this.outtakeStream = socket.getOutputStream();
-		this.connectionId = socket.getRemoteSocketAddress().toString();
-		this.packetsToSend = new LinkedBlockingQueue<Packet>(256);
-		if(this.connectionId == null || this.intakeStream == null || this.outtakeStream == null)
+		if(socket != null)
 		{
-			if(socket != null)
+			socket.setTcpNoDelay(true);
+			this.inputStream = socket.getInputStream();
+			this.outputStream = socket.getOutputStream();
+			this.connectionId = socket.getRemoteSocketAddress().toString();
+			this.packetsToSend = new LinkedBlockingQueue<Packet>(256);
+			if(this.connectionId == null || this.inputStream == null || this.outputStream == null)
 			{
 				socket.close();
+				throw new IOException("");
 			}
+		}
+		else
+		{
 			throw new IOException("");
 		}
 	}
@@ -53,15 +54,16 @@ public class Connection
 				{
 					while(true)
 					{
-						int packetIndicator = intakeStream.read();
+						int packetIndicator = inputStream.read();
+						System.out.println(packetIndicator);
 						byte[] data = new byte[Packet.getPacketSize(packetIndicator)];
-						intakeStream.read(data, 0, data.length);
-						networkManager.queueForProcess(Packet.wrap(packetIndicator, data));
+						inputStream.read(data, 0, data.length);
+						network.getSidedNetwork().queueForProcess(Packet.wrap(network, packetIndicator, data));
 					}
 				} 
 				catch (IOException e) 
 				{
-					e.printStackTrace();
+
 				}
 			}
 		}.start();
@@ -75,9 +77,11 @@ public class Connection
 					while(true)
 					{
 						Packet packetToSend = packetsToSend.take();
-						outtakeStream.write(packetToSend.getPacketId());
-						outtakeStream.write(packetToSend.getData());
-						outtakeStream.flush();
+						ByteArrayOutputStream output = new ByteArrayOutputStream();
+						packetToSend.wrapHeader(output);
+						packetToSend.writeData(output);
+						output.writeTo(outputStream);
+						outputStream.flush();
 					}
 				}
 				catch (IOException e)

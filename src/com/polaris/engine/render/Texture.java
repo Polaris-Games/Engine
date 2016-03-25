@@ -45,7 +45,7 @@ import com.polaris.engine.util.ResourceHelper;
 
 public class Texture
 {
-	
+
 	private static Map<String, ITexture> textures = new HashMap<String, ITexture>();
 	private static Map<String, Model> modelMap = new HashMap<String, Model>();
 	private static ITexture currentTexture = null;
@@ -299,24 +299,33 @@ public class Texture
 	 */
 	public static boolean glBindTexture(String texture) 
 	{
-		if(texture.startsWith("$"))
+		ITexture textureId = getTextureId(texture);
+		if(textureId != null && textureId != currentTexture)
 		{
-			ITexture textureId = getTextureId(texture.substring(1));
-			if(textureId != null && textureId != currentTexture)
-			{
-				glBindTexture(textureId.getTextureID());
-				currentTexture = textureId;
-				return true;
-			}
-		}
-		else if(currentTexture instanceof StitchedMap)
-		{
-			StitchedMap map = (StitchedMap) currentTexture;
-			return map.bindTexture(texture);
+			glBindTexture(textureId.getTextureID());
+			currentTexture = textureId;
+			return true;
 		}
 		return false;
 	}
 
+	public static boolean glBindTexture(String texture, String subtexture) 
+	{
+		ITexture textureId = getTextureId(texture);
+		if(textureId != null && textureId != currentTexture)
+		{
+			glBindTexture(textureId.getTextureID());
+			currentTexture = textureId;
+			return ((StitchedMap) currentTexture).bindTexture(subtexture);
+		}
+		return false;
+	}
+
+	public static boolean glBindSubTexture(String texture)
+	{
+		return ((StitchedMap) currentTexture).bindTexture(texture);
+	}
+	
 	/**
 	 * Removes a texture from memory
 	 * @param texture
@@ -432,9 +441,9 @@ public class Texture
 		}
 		return -100;
 	}
-	
+
 	private float minU, minV, maxU, maxV;
-	
+
 	public Texture(float u, float v, float u1, float v1)
 	{
 		minU = u;
@@ -442,7 +451,7 @@ public class Texture
 		maxU = u1;
 		maxV = v1;
 	}
-	
+
 	public void reduce(int width, int height)
 	{
 		minU /= (float) width;
@@ -455,60 +464,60 @@ public class Texture
 	{
 		minU = u;
 	}
-	
+
 	public void setMinV(float v)
 	{
 		minV = v;
 	}
-	
+
 	public void setMaxU(float u)
 	{
 		maxU = u;
 	}
-	
+
 	public void setMaxV(float v)
 	{
 		maxV = v;
 	}
-	
+
 	public float getMinU()
 	{
 		return minU;
 	}
-	
+
 	public float getMinV()
 	{
 		return minV;
 	}
-	
+
 	public float getMaxU()
 	{
 		return maxU;
 	}
-	
+
 	public float getMaxV()
 	{
 		return maxV;
 	}
-	
+
 	public float getMinU(int animationID)
 	{
 		return getMinU();
 	}
-	
+
 	public float getMinV(int animationID)
 	{
 		return getMinV();
 	}
-	
+
 	public float getMaxU(int animationID)
 	{
 		return getMaxU();
 	}
-	
+
 	public float getMaxV(int animationID)
 	{
 		return getMaxV();
 	}
-	
+
 }

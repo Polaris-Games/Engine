@@ -33,7 +33,7 @@ public abstract class Element
 	public void update(double delta)
 	{
 		ticksExisted++;
-		highlighted = isInRegion();
+		highlighted = isInRegion() || gui.getCurrentElement() == this;
 	}
 	
 	public abstract void render(double delta);
@@ -56,7 +56,7 @@ public abstract class Element
 		return flag % 2 == 1;
 	}
 	
-	protected int mouseHeld(int mouseId) {return 0;}
+	protected int mouseHeld(int mouseId) {return 1;}
 	
 	public final boolean nMouseRelease(int mouseId)
 	{
@@ -66,7 +66,7 @@ public abstract class Element
 		return flag % 2 == 1;
 	}
 	
-	protected int mouseRelease(int mouseId) {return 0;}
+	protected int mouseRelease(int mouseId) {return 1;}
 	
 	public final boolean nMouseScroll(double xOffset, double yOffset)
 	{
@@ -83,7 +83,7 @@ public abstract class Element
 		int flag = keyPressed(keyId, mods);
 		if((flag & 0x0000FFFF) == 1)
 			gui.elementUpdate(this, 4);
-		return flag >> 16;
+		return flag >>> 16;
 	}
 	
 	protected int keyPressed(int keyId, int mods) {return 0;}
@@ -93,7 +93,7 @@ public abstract class Element
 		int flag = keyHeld(keyId, called, mods);
 		if((flag & 0x0000FFFF) == 1)
 			gui.elementUpdate(this, 5);
-		return flag >> 16;
+		return flag >>> 16;
 	}
 	
 	protected int keyHeld(int keyId, int called, int mods) {return 0;}

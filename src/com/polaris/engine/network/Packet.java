@@ -1,26 +1,58 @@
 package com.polaris.engine.network;
 
-public class Packet 
+import java.io.ByteArrayOutputStream;
+import java.util.List;
+
+public abstract class Packet
 {
+	
+	private static List<Packet> packetList;
 
-	public static int getPacketSize(int packetIndicator) 
+	protected final SidedNetwork<? extends NetworkManager> network;
+	
+	private byte packetHeader = 0;
+	
+	public static void addPacket(Packet packetToAdd)
 	{
-		return 10;
+		packetToAdd.setHeader(packetList.size() - 128);
 	}
 
-	public static Packet wrap(int packetIndicator, byte[] data) 
+	public static int getPacketSize(int packetIndicator)
 	{
-		return null;
+		return packetList.get(packetIndicator + 128).getPacketLength();
 	}
+	
+	public static Packet wrap(SidedNetwork<? extends NetworkManager> sidedNetwork, int packetIndicator, byte[] data) 
+	{
+		return packetList.get(packetIndicator + 128).copy(sidedNetwork, data);
+	}
+	
+	public Packet()
+	{
+		network = null;
+	}
+	
+	public Packet(SidedNetwork<? extends NetworkManager> sidedNetwork)
+	{
+		network = sidedNetwork;
+	}
+	
+	public abstract int getPacketId();
 
-	public int getPacketId() 
-	{
-		return 0;
-	}
+	public abstract void writeData(ByteArrayOutputStream output);
+	
+	public abstract Packet copy(SidedNetwork<? extends NetworkManager> sidedNetwork, byte[] data);
 
-	public byte[] getData()
+	private void setHeader(int i)
 	{
-		return null;
+		packetHeader = (byte)i;
 	}
+	
+	public final void wrapHeader(ByteArrayOutputStream output)
+	{
+		output.write(packetHeader);
+	}
+	
+	public abstract short getPacketLength();
 
 }

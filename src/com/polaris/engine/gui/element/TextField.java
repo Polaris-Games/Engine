@@ -42,7 +42,7 @@ public class TextField extends Element
 	@Override
 	public int mouseClick(int mouseId) 
 	{
-		return 2;
+		return 1;
 	}
 
 }

@@ -211,6 +211,11 @@ public abstract class Gui
 		return currentElement;
 	}
 
+	public void setCurrentElement(int id)
+	{
+		currentElement = this.getElement(id);
+	}
+	
 	protected Gui getParent()
 	{
 		return parent;
@@ -219,6 +224,11 @@ public abstract class Gui
 	public Camera getCamera()
 	{
 		return camera;
+	}
+	
+	public Application getApplication()
+	{
+		return application;
 	}
 
 }

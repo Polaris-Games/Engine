@@ -46,6 +46,7 @@ public class FontMap implements ITexture
 			object.height = parseInt(content[4]);
 			object.xOffset = Float.parseFloat(content[5]);
 			object.yOffset = Float.parseFloat(content[6]);
+			object.xadvance = Float.parseFloat(content[7]);
 			largestWidth = Math.max(largestWidth, object.width);
 			largestHeight = Math.max(largestHeight, object.height);
 			object.texture = new Texture(x, y, x + object.width, y + object.height);
@@ -59,6 +60,7 @@ public class FontMap implements ITexture
 			object.xOffset /= largestWidth;
 			object.height /= largestHeight;
 			object.yOffset /= largestHeight;
+			object.xadvance /= largestWidth;
 		}
 		reader.close();
 		if(kerningFile.exists() && kerningFile.isFile())
@@ -211,7 +213,7 @@ public class FontMap implements ITexture
 	 * @param whatchars : contains the content to be written
 	 * @param x : x-position on screen to draw string on
 	 * @param y : y-position on screen to draw string on
-	 * @param z : z-level
+	 * @param z : z-level 
 	 * @param alignment : 0->left, 1->center, 2->right alignment of string relative to x
 	 * @param shiftToColor : ending color on the right
 	 * @param width : maximum width the string can be
@@ -250,7 +252,7 @@ public class FontMap implements ITexture
 				yOffset = letter.getYOffset() * pointFont;
 				if(whatchars.charAt(i) != ' ')
 					Draw.rectUV(x + xOffset, y + yOffset, x + width + xOffset, y + letter.getHeight() * pointFont + yOffset, z, letter.getTexture());
-				x += width + xOffset;
+				x += letter.getAdvance() * pointFont;
 			}
 		}
 		glEnd();
@@ -285,7 +287,7 @@ public class FontMap implements ITexture
 				yOffset = letter.getYOffset() * pointFont;
 				if(whatchars.charAt(i) != ' ')
 					Draw.colorHRectUV(x + xOffset, y + yOffset, x + width + xOffset, y + letter.getHeight() * pointFont + yOffset, z, letter.getTexture(), getRed() + (redShift * width), getGreen() + (greenShift * width), getBlue() + (blueShift * width), getAlpha() + (alphaShift * width));
-				x += width + xOffset;
+				x += letter.getAdvance() * pointFont;
 				pastLetter = letter;
 			}
 		}
@@ -300,27 +302,19 @@ public class FontMap implements ITexture
 	public double getTextWidth(CharSequence whatchars)
 	{
 		double totalWidth = 0;
-		IntObject pastIntObject = null;
-		IntObject intObject = null;
+		IntObject letter = null;
 
 		for (int i = 0; i < whatchars.length(); i++)
 		{
-			intObject = getCharData(whatchars.charAt(i));
-			if(intObject != null)
+			letter = getCharData(whatchars.charAt(i));
+			if(letter != null)
 			{
-				totalWidth += intObject.getWidth() + intObject.getXOffset();
-				if(intObject.getWidth() + intObject.getXOffset() < 0)
-					System.out.println(intObject.getWidth() + " " + intObject.getXOffset());
-				if(pastIntObject != null && intObject.getKerning() != null)
-				{
-					totalWidth += intObject.getKerning().get(pastIntObject);
-				}
+				totalWidth += letter.getAdvance();
 			}
 			else
 			{
 				return 0;
 			}
-			pastIntObject = intObject;
 		}
 		return totalWidth;
 	}
@@ -365,6 +359,7 @@ public class FontMap implements ITexture
 		private float height;
 		private float xOffset;
 		private float yOffset;
+		private float xadvance;
 
 		public Texture getTexture()
 		{
@@ -391,6 +386,11 @@ public class FontMap implements ITexture
 			return yOffset;
 		}
 
+		public float getAdvance()
+		{
+			return xadvance;
+		}
+		
 		public Kerning getKerning()
 		{
 			return kerning;

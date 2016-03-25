@@ -140,6 +140,15 @@ public class Draw
 		glVertex(x1, y, z, texture.getMaxU(), texture.getMinV());
 	}
 	
+	public static void rectUV90(double x, double y, double x1, double y1, double z)
+	{
+		Texture texture = getTexture();
+		glVertex(x, y, z, texture.getMinU(), texture.getMaxV());
+		glVertex(x, y1, z, texture.getMaxU(), texture.getMaxV());
+		glVertex(x1, y1, z, texture.getMaxU(), texture.getMinV());
+		glVertex(x1, y, z, texture.getMinU(), texture.getMinV());
+	}
+	
 	/**
 	 * draws a rectangle, must have glBegin(GL_QUADS) enabled!
 	 * @param x

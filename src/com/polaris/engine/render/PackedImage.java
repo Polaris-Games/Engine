@@ -66,7 +66,9 @@ public class PackedImage
 					tempCell++;
 					tempRow++;
 					if(tempCell < cellSize)
+					{
 						fitInto = checkIfFits(currentRow, tempCell, rowSize, cellSize, image.getWidth(), image.getHeight());
+					}
 					if(!fitInto)
 					{
 						if(tempRow < rowSize)

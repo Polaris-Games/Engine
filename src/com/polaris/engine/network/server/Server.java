@@ -3,8 +3,19 @@ package com.polaris.engine.network.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+
+import com.polaris.engine.network.SidedNetwork;
 
 public class Server
 {
@@ -12,13 +23,30 @@ public class Server
 	private final ServerSocket listener;
 	private final Map<String, Connection> clientMap;
 	protected boolean canAcceptClients = true;
-	private ServerNetworkManager serverNetworkManager;
+	private SidedNetwork<? extends ServerNetworkManager> network;
+	
+	private Cipher cipher;
+	private RSAPublicKey publicKey;
 
-	public Server(ServerNetworkManager manager) throws IOException
+	public Server(SidedNetwork<? extends ServerNetworkManager> sidedNetwork) throws IOException
 	{
 		listener = new ServerSocket(getServerPort());
 		clientMap = new HashMap<String, Connection>();
-		serverNetworkManager = manager;
+		network = sidedNetwork;
+		try
+		{
+			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+			keyGen.initialize(8192);
+			KeyPair key = keyGen.generateKeyPair();
+			cipher = Cipher.getInstance("RSA");
+			cipher.init(Cipher.DECRYPT_MODE, key.getPrivate());
+			publicKey = (RSAPublicKey) key.getPublic();
+		}
+		catch(NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e)
+		{
+			e.printStackTrace();
+		}
+
 		new Thread()
 		{
 			@Override
@@ -82,7 +110,7 @@ public class Server
 
 	protected Connection genConnection(Socket clientSocket) throws IOException
 	{
-		return new Connection(serverNetworkManager, clientSocket);
+		return new Connection(network, clientSocket);
 	}
 
 }

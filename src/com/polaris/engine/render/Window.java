@@ -1,7 +1,6 @@
 package com.polaris.engine.render;
 
 import static com.polaris.engine.options.Settings.getNextWindow;
-import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.glfw.GLFW.GLFW_BLUE_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_GREEN_BITS;
 import static org.lwjgl.glfw.GLFW.GLFW_RED_BITS;
@@ -46,7 +45,9 @@ import static org.lwjgl.opengl.GL11.glViewport;
 
 import java.nio.IntBuffer;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
@@ -83,7 +84,33 @@ public class Window
 
 	private static final List<Integer> modKeys = Arrays.asList(GLFW.GLFW_KEY_LEFT_SHIFT, GLFW.GLFW_KEY_RIGHT_SHIFT, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_RIGHT_CONTROL, GLFW.GLFW_KEY_LEFT_ALT, GLFW.GLFW_KEY_RIGHT_ALT,
 			GLFW.GLFW_KEY_LEFT_SUPER, GLFW.GLFW_KEY_RIGHT_SUPER);
+	private static final Map<Integer, Integer> shiftKeys = new HashMap<Integer, Integer>();
 	private static int currentModKeys = 0;
+	
+	static
+	{
+		shiftKeys.put((int)'0', (int)')');
+		shiftKeys.put((int)'1', (int)'!');
+		shiftKeys.put((int)'2', (int)'@');
+		shiftKeys.put((int)'3', (int)'#');
+		shiftKeys.put((int)'4', (int)'$');
+		shiftKeys.put((int)'5', (int)'%');
+		shiftKeys.put((int)'6', (int)'^');
+		shiftKeys.put((int)'7', (int)'&');
+		shiftKeys.put((int)'8', (int)'*');
+		shiftKeys.put((int)'9', (int)'(');
+		shiftKeys.put((int)'`', (int)'~');
+		shiftKeys.put((int)'-', (int)'_');
+		shiftKeys.put((int)'=', (int)'+');
+		shiftKeys.put((int)'[', (int)'{');
+		shiftKeys.put((int)']', (int)'}');
+		shiftKeys.put((int)';', (int)':');
+		shiftKeys.put((int)'\'', (int)'"');
+		shiftKeys.put((int)',', (int)'<');
+		shiftKeys.put((int)'.', (int)'>');
+		shiftKeys.put((int)'/', (int)'?');
+		shiftKeys.put((int)'\\', (int)'|');
+	}
 
 	public static boolean create()
 	{
@@ -325,6 +352,11 @@ public class Window
 	public static int getKey(int key)
 	{
 		return glfwGetKey(windowInstance, key);
+	}
+	
+	public static int getShiftKey(int key)
+	{
+		return shiftKeys.containsKey(key) ? shiftKeys.get(key) : key;
 	}
 
 	/**
