@@ -10,13 +10,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Connection 
 {
 	
-	protected SidedNetwork<? extends NetworkManager> network;
+	protected NetworkManager network;
 	protected Socket socket;
 	private DataInputStream inputStream;
 	private DataOutputStream outputStream;
 	protected LinkedBlockingQueue<Packet> packetsToSend;
 
-	public Connection(SidedNetwork<? extends NetworkManager> sidedNetwork, Socket clientSocket) throws IOException
+	public Connection(NetworkManager sidedNetwork, Socket clientSocket) throws IOException
 	{
 		network = sidedNetwork;
 		socket = clientSocket;
@@ -55,7 +55,7 @@ public class Connection
 						int length = inputStream.readInt();
 						byte[] data = new byte[length];
 						inputStream.readFully(data);
-						network.getSidedNetwork().queueForProcess(Packet.wrap(network, packet, data));
+						network.queueForProcess(Packet.wrap(packet, data));
 					}
 				} 
 				catch (IOException e) 

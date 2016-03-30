@@ -135,7 +135,7 @@ public class GuiLogin extends Gui
 				{
 					try 
 					{
-						connectionToServer = new Client(ClientNetwork.sidedNetwork, "localhost", 8888);
+						connectionToServer = new Client(ClientNetwork.clientNetwork, "localhost", 8888);
 						connectionToServer.validate(true);
 						loadingPhase = 2;
 					} 

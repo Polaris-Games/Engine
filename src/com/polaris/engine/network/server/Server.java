@@ -7,7 +7,6 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,20 +14,18 @@ import java.util.Map;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 
-import com.polaris.engine.network.SidedNetwork;
-
 public class Server
 {
 
 	private final ServerSocket listener;
 	private final Map<String, ClientLink> clientMap;
 	protected boolean canAcceptClients = true;
-	private SidedNetwork<? extends ServerNetworkManager> network;
+	private ServerNetworkManager network;
 	
 	private Cipher cipher;
 	private RSAPublicKey publicKey;
 
-	public Server(SidedNetwork<? extends ServerNetworkManager> sidedNetwork) throws IOException
+	public Server(ServerNetworkManager sidedNetwork) throws IOException
 	{
 		listener = new ServerSocket(getServerPort());
 		clientMap = new HashMap<String, ClientLink>();

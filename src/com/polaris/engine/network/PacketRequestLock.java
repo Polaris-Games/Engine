@@ -6,7 +6,7 @@ public class PacketRequestLock extends Packet
 {
 
 	@Override
-	public Packet copy(SidedNetwork<? extends NetworkManager> sidedNetwork, byte[] data) 
+	public Packet copy(byte[] data) 
 	{
 		return this;
 	}

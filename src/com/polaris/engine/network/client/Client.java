@@ -11,14 +11,13 @@ import javax.crypto.NoSuchPaddingException;
 
 import com.polaris.engine.network.Connection;
 import com.polaris.engine.network.PacketRequestLock;
-import com.polaris.engine.network.SidedNetwork;
 
 public class Client extends Connection
 {
 
 	private Cipher cipher = null;
 
-	public Client(SidedNetwork<? extends ClientNetworkManager> sidedNetwork, String serverAddress, int port) throws IOException
+	public Client(ClientNetworkManager sidedNetwork, String serverAddress, int port) throws IOException
 	{
 		super(sidedNetwork, new Socket(serverAddress, port));
 	}

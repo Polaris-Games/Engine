@@ -14,8 +14,6 @@ public abstract class Packet
 		addPacket(new PacketReceiveLock());
 		addPacket(new PacketRequestLock());
 	}
-
-	protected final SidedNetwork<? extends NetworkManager> network;
 	
 	private short packetHeader = 0;
 	
@@ -39,24 +37,14 @@ public abstract class Packet
 		return header;
 	}
 	
-	public static Packet wrap(SidedNetwork<? extends NetworkManager> sidedNetwork, int packet, byte[] data) 
+	public static Packet wrap(int packet, byte[] data) 
 	{
-		return packetList.get(packet).copy(sidedNetwork, data);
-	}
-	
-	public Packet()
-	{
-		network = null;
-	}
-	
-	public Packet(SidedNetwork<? extends NetworkManager> sidedNetwork)
-	{
-		network = sidedNetwork;
+		return packetList.get(packet).copy(data);
 	}
 
 	public abstract void writeData(ByteArrayOutputStream output);
 	
-	public abstract Packet copy(SidedNetwork<? extends NetworkManager> sidedNetwork, byte[] data);
+	public abstract Packet copy(byte[] data);
 
 	public final void setHeader(int i)
 	{

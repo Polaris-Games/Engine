@@ -11,7 +11,7 @@ public class ServerApplication
 	
 	public static void main(String[] args) throws IOException
 	{
-		Server server = new Server(ServerNetwork.sidedNetwork);
+		Server server = new Server(ServerNetwork.serverNetwork);
 	}
 
 }

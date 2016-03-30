@@ -1,22 +1,31 @@
 package com.polaris.chat;
+import java.io.IOException;
+
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWVidMode;
 
 import com.polaris.engine.Application;
-import com.polaris.engine.network.Packet;
-import com.polaris.engine.network.PacketRequestLock;
 import com.polaris.engine.network.client.Client;
 import com.polaris.engine.render.Window;
 
 public class ChatApplication extends Application
 {
-	
+
 	public static Client connectionToServer;
-	
-	public static void main(String[] args)
+
+	public static void main(String[] args) throws IOException
 	{
-		ChatApplication chat = new ChatApplication();
+		ChatApplication chat = new ChatApplication(ClientNetwork.clientNetwork);
 		chat.run();
+		if(connectionToServer != null)
+		{
+			connectionToServer.invalidate();
+		}
+		System.exit(0);
+	}
+	
+	public ChatApplication(ClientNetwork clientNetwork) 
+	{
+		super(clientNetwork);
 	}
 
 	@Override

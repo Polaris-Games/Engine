@@ -32,6 +32,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 
 import com.polaris.engine.gui.Gui;
+import com.polaris.engine.network.NetworkManager;
 import com.polaris.engine.options.Settings;
 import com.polaris.engine.render.OpenGL;
 import com.polaris.engine.render.Window;
@@ -56,6 +57,15 @@ public abstract class Application
 	protected Gui currentGui;
 
 	private GLCapabilities glCapabilities;
+	
+	private NetworkManager network = null;
+	
+	public Application() {}
+	
+	public Application(NetworkManager sidedNetwork)
+	{
+		network = sidedNetwork;
+	}
 
 	/**
 	 * Initializes a window application
@@ -96,6 +106,10 @@ public abstract class Application
 			handleKeyInput(delta);
 			
 			glClearBuffers();
+			if(network != null)
+			{
+				network.update(delta);
+			}
 			update(delta);
 			render(delta);
 			mouseDeltaX = mouseDeltaY = 0;
