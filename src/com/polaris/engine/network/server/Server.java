@@ -21,7 +21,7 @@ public class Server
 {
 
 	private final ServerSocket listener;
-	private final Map<String, Connection> clientMap;
+	private final Map<String, ClientLink> clientMap;
 	protected boolean canAcceptClients = true;
 	private SidedNetwork<? extends ServerNetworkManager> network;
 	
@@ -31,7 +31,7 @@ public class Server
 	public Server(SidedNetwork<? extends ServerNetworkManager> sidedNetwork) throws IOException
 	{
 		listener = new ServerSocket(getServerPort());
-		clientMap = new HashMap<String, Connection>();
+		clientMap = new HashMap<String, ClientLink>();
 		network = sidedNetwork;
 		try
 		{
@@ -53,7 +53,7 @@ public class Server
 			public void run()
 			{
 				Socket clientSocket;
-				Connection newClient;
+				ClientLink newClient;
 				while(canAcceptClients)
 				{
 					try 
@@ -108,9 +108,9 @@ public class Server
 		return 8888;
 	}
 
-	protected Connection genConnection(Socket clientSocket) throws IOException
+	protected ClientLink genConnection(Socket clientSocket) throws IOException
 	{
-		return new Connection(network, clientSocket);
+		return new ClientLink(network, clientSocket);
 	}
 
 }

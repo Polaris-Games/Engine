@@ -6,27 +6,15 @@ public class PacketRequestLock extends Packet
 {
 
 	@Override
-	public int getPacketId()
-	{
-		return 0;
-	}
-
-	@Override
 	public Packet copy(SidedNetwork<? extends NetworkManager> sidedNetwork, byte[] data) 
 	{
-		return null;
+		return this;
 	}
 
 	@Override
 	public void writeData(ByteArrayOutputStream output) 
 	{
 		
-	}
-
-	@Override
-	public short getPacketLength()
-	{
-		return 0;
 	}
 
 }

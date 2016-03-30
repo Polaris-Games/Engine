@@ -1,30 +1,47 @@
 package com.polaris.engine.network;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Packet
 {
 	
-	private static List<Packet> packetList;
+	private static List<Packet> packetList = new ArrayList<Packet>();
+	
+	static
+	{
+		addPacket(new PacketReceiveLock());
+		addPacket(new PacketRequestLock());
+	}
 
 	protected final SidedNetwork<? extends NetworkManager> network;
 	
-	private byte packetHeader = 0;
+	private short packetHeader = 0;
 	
 	public static void addPacket(Packet packetToAdd)
 	{
-		packetToAdd.setHeader(packetList.size() - 128);
-	}
-
-	public static int getPacketSize(int packetIndicator)
-	{
-		return packetList.get(packetIndicator + 128).getPacketLength();
+		packetToAdd.setHeader(packetList.size());
+		packetList.add(packetToAdd);
 	}
 	
-	public static Packet wrap(SidedNetwork<? extends NetworkManager> sidedNetwork, int packetIndicator, byte[] data) 
+	public static int getPacketHeader(Packet packet)
 	{
-		return packetList.get(packetIndicator + 128).copy(sidedNetwork, data);
+		int header = 0;
+		for(int i = 0; i < packetList.size(); i++)
+		{
+			if(packetList.get(i).getClass() == packet.getClass())
+			{
+				header = i;
+				break;
+			}
+		}
+		return header;
+	}
+	
+	public static Packet wrap(SidedNetwork<? extends NetworkManager> sidedNetwork, int packet, byte[] data) 
+	{
+		return packetList.get(packet).copy(sidedNetwork, data);
 	}
 	
 	public Packet()
@@ -36,23 +53,19 @@ public abstract class Packet
 	{
 		network = sidedNetwork;
 	}
-	
-	public abstract int getPacketId();
 
 	public abstract void writeData(ByteArrayOutputStream output);
 	
 	public abstract Packet copy(SidedNetwork<? extends NetworkManager> sidedNetwork, byte[] data);
 
-	private void setHeader(int i)
+	public final void setHeader(int i)
 	{
-		packetHeader = (byte)i;
+		packetHeader = (short)i;
 	}
 	
-	public final void wrapHeader(ByteArrayOutputStream output)
+	public final int getHeader()
 	{
-		output.write(packetHeader);
+		return packetHeader;
 	}
-	
-	public abstract short getPacketLength();
 
 }

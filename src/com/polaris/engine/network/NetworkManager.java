@@ -5,7 +5,7 @@ public abstract class NetworkManager
 
 	public void queueForProcess(Packet packetToProcess) 
 	{
-		
+		System.out.println(packetToProcess);
 	}
 
 }
