@@ -65,7 +65,7 @@ import org.lwjgl.glfw.GLFWWindowRefreshCallback;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
 
-import com.polaris.engine.Application;
+import com.polaris.engine.App;
 
 public class Window 
 {
@@ -73,7 +73,7 @@ public class Window
 	 * Instance version of the application's window instance
 	 */
 	private static long windowInstance = -1;
-	private static Application window = null;
+	private static App window = null;
 	private static int currentFullscreen = 0;
 	private static boolean isRunning = true;
 
@@ -121,7 +121,7 @@ public class Window
 	 * sets up the environment for a window to be created.
 	 * @return true for success, false otherwise
 	 */
-	public static long setupWindow(Application app)
+	public static long setupWindow(App app)
 	{
 		window = app;
 		long instance;

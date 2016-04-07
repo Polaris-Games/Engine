@@ -5,21 +5,23 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class Connection 
-{
+import com.polaris.engine.Application;
+
+public abstract class Network
+{	
+	private ConcurrentLinkedQueue<Packet> packets;
 	
-	protected NetworkManager network;
 	protected Socket socket;
 	private DataInputStream inputStream;
 	private DataOutputStream outputStream;
 	protected LinkedBlockingQueue<Packet> packetsToSend;
 
-	public Connection(NetworkManager sidedNetwork, Socket clientSocket) throws IOException
+	protected void connect(Socket connectionSocket) throws IOException
 	{
-		network = sidedNetwork;
-		socket = clientSocket;
+		socket = connectionSocket;
 		if(socket != null)
 		{
 			socket.setTcpNoDelay(true);
@@ -28,6 +30,7 @@ public class Connection
 			outputStream.flush();
 
 			packetsToSend = new LinkedBlockingQueue<Packet>();
+			packets = new ConcurrentLinkedQueue<Packet>();
 			if(inputStream == null || outputStream == null)
 			{
 				socket.close();
@@ -39,7 +42,7 @@ public class Connection
 			throw new IOException("");
 		}
 	}
-
+	
 	public void validate()
 	{
 		new Thread()
@@ -55,10 +58,10 @@ public class Connection
 						int length = inputStream.readInt();
 						byte[] data = new byte[length];
 						inputStream.readFully(data);
-						network.queueForProcess(Packet.wrap(packet, data));
+						packets.offer(Packet.wrap(packet, data));
 					}
 				} 
-				catch (IOException e) 
+				catch (IOException | ReflectiveOperationException e) 
 				{
 
 				}
@@ -75,13 +78,11 @@ public class Connection
 					{
 						Packet packetToSend = packetsToSend.take();
 						ByteArrayOutputStream output = new ByteArrayOutputStream();
-						System.out.println(packetToSend.getHeader());
 						outputStream.writeShort(packetToSend.getHeader());
 						packetToSend.writeData(output);
 						outputStream.writeInt(output.size());
 						output.writeTo(outputStream);
 						outputStream.flush();
-						System.out.println(packetToSend);
 					}
 				}
 				catch (IOException e)
@@ -96,11 +97,19 @@ public class Connection
 		}.start();
 	}
 	
+	public void update(double delta)
+	{
+		Packet nextPacket = null;
+		while((nextPacket = packets.poll()) != null)
+		{
+			nextPacket.handle(this);
+		}
+	}
+	
 	public void sendPacket(Packet packetToSend)
 	{
 		try 
 		{
-			packetToSend.setHeader(Packet.getPacketHeader(packetToSend));
 			packetsToSend.put(packetToSend);
 		}
 		catch (InterruptedException e) 

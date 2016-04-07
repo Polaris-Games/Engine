@@ -3,11 +3,10 @@ package com.polaris.engine.gui;
 import static com.polaris.engine.render.Window.gl2d;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+import com.polaris.engine.App;
 import com.polaris.engine.Application;
 import com.polaris.engine.Camera;
 import com.polaris.engine.gui.element.Element;
@@ -20,12 +19,12 @@ public abstract class Gui
 	private List<Element> elementList = new ArrayList<Element>();
 	protected Element currentElement;
 	protected double ticksExisted = 0;
-	protected Application application;
+	protected App application;
 	protected Gui parent;
 
 	protected Camera camera;
 
-	public Gui(Application app)
+	public Gui(App app)
 	{
 		application = app;
 		parent = null;
@@ -226,7 +225,7 @@ public abstract class Gui
 		return camera;
 	}
 	
-	public Application getApplication()
+	public App getApplication()
 	{
 		return application;
 	}

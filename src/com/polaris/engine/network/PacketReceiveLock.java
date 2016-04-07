@@ -1,18 +1,30 @@
 package com.polaris.engine.network;
 
 import java.io.ByteArrayOutputStream;
+import java.security.interfaces.RSAPublicKey;
 
 public class PacketReceiveLock extends Packet
 {
 
-	@Override
-	public Packet copy(byte[] data) 
+	public PacketReceiveLock(RSAPublicKey publicKey) 
 	{
-		return null;
+		
+	}
+
+	@Override
+	public void copy(ByteArrayOutputStream data) 
+	{
+		
 	}
 
 	@Override
 	public void writeData(ByteArrayOutputStream output)
+	{
+		
+	}
+
+	@Override
+	public void handle(Network network)
 	{
 		
 	}

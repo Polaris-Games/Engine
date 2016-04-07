@@ -1,7 +1,5 @@
 package com.polaris.engine.render;
 
-import static com.polaris.engine.options.Settings.getModelDirectory;
-import static com.polaris.engine.options.Settings.getTextureDirectory;
 import static org.lwjgl.opengl.GL11.GL_ALPHA_TEST;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
@@ -10,27 +8,14 @@ import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_DITHER;
 import static org.lwjgl.opengl.GL11.GL_GREATER;
 import static org.lwjgl.opengl.GL11.GL_LEQUAL;
-import static org.lwjgl.opengl.GL11.GL_LINEAR;
-import static org.lwjgl.opengl.GL11.GL_LINEAR_MIPMAP_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_NICEST;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_PERSPECTIVE_CORRECTION_HINT;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
-import static org.lwjgl.opengl.GL11.GL_REPEAT;
-import static org.lwjgl.opengl.GL11.GL_RGBA;
-import static org.lwjgl.opengl.GL11.GL_RGBA8;
 import static org.lwjgl.opengl.GL11.GL_SMOOTH;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_STENCIL_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_HEIGHT;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WIDTH;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11.GL_UNPACK_ALIGNMENT;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.glAlphaFunc;
 import static org.lwjgl.opengl.GL11.glBlendFunc;
 import static org.lwjgl.opengl.GL11.glClear;
@@ -38,41 +23,18 @@ import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glClearDepth;
 import static org.lwjgl.opengl.GL11.glClearStencil;
 import static org.lwjgl.opengl.GL11.glColor4d;
-import static org.lwjgl.opengl.GL11.glDeleteTextures;
 import static org.lwjgl.opengl.GL11.glDepthFunc;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glGenTextures;
-import static org.lwjgl.opengl.GL11.glGetTexImage;
-import static org.lwjgl.opengl.GL11.glGetTexLevelParameteriv;
 import static org.lwjgl.opengl.GL11.glHint;
 import static org.lwjgl.opengl.GL11.glPixelStorei;
 import static org.lwjgl.opengl.GL11.glShadeModel;
 import static org.lwjgl.opengl.GL11.glTexCoord2d;
-import static org.lwjgl.opengl.GL11.glTexImage2D;
-import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL11.glTexSubImage2D;
 import static org.lwjgl.opengl.GL11.glVertex3d;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.imageio.ImageIO;
-
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBFramebufferObject;
-import org.lwjgl.opengl.ARBTextureStorage;
 import org.lwjgl.opengl.GL11;
 
 import com.polaris.engine.util.Color4d;
-import com.polaris.engine.util.Helper;
 
 
 public class OpenGL 

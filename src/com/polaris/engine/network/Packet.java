@@ -1,56 +1,66 @@
 package com.polaris.engine.network;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.util.LinkedHashMap;
 
 public abstract class Packet
 {
 	
-	private static List<Packet> packetList = new ArrayList<Packet>();
+	private static LinkedHashMap<Class<? extends Packet>, Short> packetMap = new LinkedHashMap<Class<? extends Packet>, Short>();
 	
 	static
 	{
-		addPacket(new PacketReceiveLock());
-		addPacket(new PacketRequestLock());
+		addPacket(PacketReceiveLock.class);
+		addPacket(PacketRequestLock.class);
 	}
 	
 	private short packetHeader = 0;
 	
-	public static void addPacket(Packet packetToAdd)
+	public static void addPacket(Class<? extends Packet> packet)
 	{
-		packetToAdd.setHeader(packetList.size());
-		packetList.add(packetToAdd);
+		packetMap.put(packet, (short) packetMap.size());
 	}
 	
-	public static int getPacketHeader(Packet packet)
+	public static short getPacketHeader(Packet packet)
 	{
-		int header = 0;
-		for(int i = 0; i < packetList.size(); i++)
+		return packetMap.get(packet.getClass());
+	}
+	
+	public static Packet wrap(int packet, byte[] data) throws ReflectiveOperationException, IOException 
+	{
+		Class<? extends Packet> packetClass = null;
+		for(Class<? extends Packet> packetCl : packetMap.keySet())
 		{
-			if(packetList.get(i).getClass() == packet.getClass())
+			if(packetMap.get(packetCl) == packet)
 			{
-				header = i;
+				packetClass = packetCl;
 				break;
 			}
 		}
-		return header;
+		Constructor<? extends Packet> packetInstance = packetClass.getConstructor(ByteArrayOutputStream.class);
+		ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
+		dataStream.write(data);
+		return packetInstance.newInstance(dataStream);
 	}
 	
-	public static Packet wrap(int packet, byte[] data) 
+	public Packet() 
 	{
-		return packetList.get(packet).copy(data);
+		packetHeader = getPacketHeader(this);
+	}
+	
+	public Packet(ByteArrayOutputStream data)
+	{
+		copy(data);
 	}
 
 	public abstract void writeData(ByteArrayOutputStream output);
 	
-	public abstract Packet copy(byte[] data);
-
-	public final void setHeader(int i)
-	{
-		packetHeader = (short)i;
-	}
+	public abstract void copy(ByteArrayOutputStream data);
 	
+	public abstract void handle(Network network);
+
 	public final int getHeader()
 	{
 		return packetHeader;

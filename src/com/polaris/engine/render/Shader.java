@@ -22,7 +22,6 @@ import java.nio.IntBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 
-import com.polaris.engine.util.Helper;
 import com.polaris.engine.util.ResourceHelper;
 
 public class Shader

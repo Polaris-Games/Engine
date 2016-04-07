@@ -1,4 +1,4 @@
-package com.polaris.engine.network.client;
+package com.polaris.engine.network;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -9,19 +9,20 @@ import java.security.interfaces.RSAPublicKey;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 
-import com.polaris.engine.network.Connection;
-import com.polaris.engine.network.PacketRequestLock;
+import com.polaris.engine.Application;
 
-public class Client extends Connection
+
+public class ClientNetwork extends Network
 {
 
+	private Application application = null;
 	private Cipher cipher = null;
-
-	public Client(ClientNetworkManager sidedNetwork, String serverAddress, int port) throws IOException
+	
+	public void connect(String serverAddress, int port) throws IOException
 	{
-		super(sidedNetwork, new Socket(serverAddress, port));
+		connect(new Socket(serverAddress, port));
 	}
-
+	
 	public void validate(boolean establishSecureTunnel)
 	{
 		super.validate();
@@ -44,5 +45,15 @@ public class Client extends Connection
 			e.printStackTrace();
 		}
 	}
-
+	
+	public void setApplication(Application app)
+	{
+		application = app;
+	}
+	
+	public Application getApplication()
+	{
+		return application;
+	}
+	
 }

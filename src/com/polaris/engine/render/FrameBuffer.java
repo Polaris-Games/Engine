@@ -57,10 +57,7 @@ import static org.lwjgl.opengl.GL30.glGenFramebuffers;
 import static org.lwjgl.opengl.GL30.glGenRenderbuffers;
 import static org.lwjgl.opengl.GL30.glRenderbufferStorage;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.lwjgl.BufferUtils;
 

@@ -1,7 +1,4 @@
 package com.polaris.chat;
-import static com.polaris.engine.render.OpenGL.glBegin;
-import static com.polaris.engine.render.OpenGL.glBlend;
-import static com.polaris.engine.render.OpenGL.glVertex;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;

@@ -6,15 +6,21 @@ public class PacketRequestLock extends Packet
 {
 
 	@Override
-	public Packet copy(byte[] data) 
+	public void copy(ByteArrayOutputStream data) 
 	{
-		return this;
+		
 	}
 
 	@Override
 	public void writeData(ByteArrayOutputStream output) 
 	{
 		
+	}
+
+	@Override
+	public void handle(Network network) 
+	{
+		network.sendPacket(new PacketReceiveLock(((ServerNetwork) network).getServer().getPublicKey()));
 	}
 
 }

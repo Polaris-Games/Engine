@@ -1,7 +1,6 @@
 package com.polaris.chat;
 
 
-import static com.polaris.chat.ChatApplication.connectionToServer;
 import static com.polaris.engine.render.Draw.rect;
 import static com.polaris.engine.render.Draw.rectUV;
 import static com.polaris.engine.render.Draw.rectUV90;
@@ -24,10 +23,10 @@ import java.net.Socket;
 
 import org.lwjgl.glfw.GLFW;
 
+import com.polaris.engine.App;
 import com.polaris.engine.Application;
 import com.polaris.engine.gui.Gui;
 import com.polaris.engine.gui.element.Element;
-import com.polaris.engine.network.client.Client;
 import com.polaris.engine.render.FontMap;
 import com.polaris.engine.render.Texture;
 import com.polaris.engine.util.Color4d;
@@ -46,7 +45,7 @@ public class GuiLogin extends Gui
 	public double loadingTicks = 0;
 	private Socket serverSocket;
 
-	public GuiLogin(Application app) 
+	public GuiLogin(App app) 
 	{
 		super(app);
 		username = new UsernameField();
@@ -133,10 +132,10 @@ public class GuiLogin extends Gui
 			{
 				public void run()
 				{
-					try 
+					try
 					{
-						connectionToServer = new Client(ClientNetwork.clientNetwork, "localhost", 8888);
-						connectionToServer.validate(true);
+						((Application) application).getNetwork().connect("localhost", 8888);
+						((Application) application).getNetwork().validate(true);
 						loadingPhase = 2;
 					} 
 					catch (IOException e) 

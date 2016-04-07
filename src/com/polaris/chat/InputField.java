@@ -13,7 +13,6 @@ import com.polaris.engine.render.FontMap;
 import com.polaris.engine.render.OpenGL;
 import com.polaris.engine.render.Texture;
 import com.polaris.engine.render.Window;
-import com.polaris.engine.util.MathHelper;
 
 public class InputField extends TextField
 {
