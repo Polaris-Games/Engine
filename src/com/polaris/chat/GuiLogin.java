@@ -27,6 +27,7 @@ import com.polaris.engine.App;
 import com.polaris.engine.Application;
 import com.polaris.engine.gui.Gui;
 import com.polaris.engine.gui.element.Element;
+import com.polaris.engine.network.PacketSecure;
 import com.polaris.engine.render.FontMap;
 import com.polaris.engine.render.Texture;
 import com.polaris.engine.util.Color4d;
@@ -136,6 +137,7 @@ public class GuiLogin extends Gui
 					{
 						((Application) application).getNetwork().connect("localhost", 8888);
 						((Application) application).getNetwork().validate(true);
+						((Application) application).getNetwork().sendSecurePacket(new PacketContent("Hello this is a test"));
 						loadingPhase = 2;
 					} 
 					catch (IOException e) 

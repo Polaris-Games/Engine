@@ -12,27 +12,28 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import com.polaris.engine.network.ServerNetwork;
-import com.polaris.engine.render.Window;
 
 public abstract class ServerApplication extends App
 {
 	private static ServerApplication server;
 	private static boolean stopServerThread = false;
 
-	private Map<UUID, ServerNetwork> playerNetworks;
+	private Map<String, ServerNetwork> playerNetworks;
 	private final ServerSocket listener;
 
 	private Cipher cipher;
 	private RSAPublicKey publicKey;
-	
+
 	public ServerApplication(int port, int encryption) throws IOException
 	{
 		listener = new ServerSocket(port);
-		playerNetworks = new HashMap<UUID, ServerNetwork>();
+		playerNetworks = new HashMap<String, ServerNetwork>();
 		if(encryption > 0)
 		{
 			try
@@ -88,7 +89,7 @@ public abstract class ServerApplication extends App
 				try 
 				{
 					listener.close();
-					for(UUID uuid : playerNetworks.keySet())
+					for(String uuid : playerNetworks.keySet())
 					{
 						playerNetworks.get(uuid).invalidate();
 					}
@@ -100,14 +101,14 @@ public abstract class ServerApplication extends App
 			}
 		}.start();
 	}
-	
+
 	@Override
 	public void run()
 	{
 		super.run();
 		stopServerThread = true;
 	}
-	
+
 	/**
 	 * Update method called every n times / second 
 	 * <br><b>DON'T CALL super.update(delta) UNLESS YOU IMPLEMENT GUI CLASS STRUCTURE</b>
@@ -117,26 +118,52 @@ public abstract class ServerApplication extends App
 	 */
 	public void update(double delta) 
 	{
-		for(UUID uuid : playerNetworks.keySet())
+		for(String uuid : playerNetworks.keySet())
 		{
-			playerNetworks.get(uuid).update(delta);
+			ServerNetwork playerNetwork = playerNetworks.get(uuid);
+			if(playerNetwork.isConnected())
+			{
+				playerNetworks.get(uuid).update(delta);
+			}
+			else
+			{
+				playerNetworks.remove(uuid);
+			}
 		}
 		currentGui.update(delta);
 	}
-	
+
 	public ServerNetwork getNetwork(UUID uuid)
 	{
 		return playerNetworks.get(uuid);
 	}
-	
+
 	public int getServerPort()
 	{
 		return 8888;
 	}
-	
+
 	public RSAPublicKey getPublicKey()
 	{
 		return publicKey;
 	}
-	
+
+	public int getAESLength()
+	{
+		return 128;
+	}
+
+	public byte[] decryptRSA(byte[] encoded) 
+	{
+		try
+		{
+			return cipher.doFinal(encoded);
+		}
+		catch (IllegalBlockSizeException | BadPaddingException e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 }

@@ -5,6 +5,7 @@ import org.lwjgl.glfw.GLFW;
 
 import com.polaris.engine.Application;
 import com.polaris.engine.network.ClientNetwork;
+import com.polaris.engine.network.Packet;
 import com.polaris.engine.render.Window;
 
 public class ChatApplication extends Application
@@ -14,8 +15,11 @@ public class ChatApplication extends Application
 
 	public static void main(String[] args) throws IOException
 	{
+		Packet.addPacket(PacketContent.class);
+		
 		ChatApplication chat = new ChatApplication(clientNetwork);
 		chat.run();
+		System.exit(0);
 	}
 	
 	public ChatApplication(ClientNetwork clientNetwork) 

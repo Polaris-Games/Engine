@@ -37,7 +37,7 @@ public class GuiChat extends Gui
 	{
 		if(actionId == 4)
 		{
-			
+			input.setText("");
 		}
 	}
 	

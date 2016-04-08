@@ -167,7 +167,7 @@ public abstract class App
 
 	protected boolean checkOpenGL()
 	{
-		return glCapabilities.OpenGL33;
+		return glCapabilities.OpenGL11;
 	}
 
 	/**

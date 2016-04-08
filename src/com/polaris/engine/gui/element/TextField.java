@@ -44,5 +44,15 @@ public class TextField extends Element
 	{
 		return 1;
 	}
+	
+	public String getText()
+	{
+		return text;
+	}
+	
+	public void setText(String s)
+	{
+		text = s;
+	}
 
 }

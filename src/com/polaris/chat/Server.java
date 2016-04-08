@@ -4,6 +4,7 @@ import java.io.IOException;
 import org.lwjgl.glfw.GLFW;
 
 import com.polaris.engine.ServerApplication;
+import com.polaris.engine.network.Packet;
 import com.polaris.engine.render.Window;
 
 public class Server extends ServerApplication
@@ -11,8 +12,9 @@ public class Server extends ServerApplication
 
 	public static void main(String[] args) throws IOException
 	{
-		Server chat = new Server(8888, 1024);
+		Server chat = new Server(8888, 4096);
 		chat.run();
+		Packet.addPacket(PacketContent.class);
 	}
 
 	public Server(int port, int encryption) throws IOException
@@ -23,17 +25,7 @@ public class Server extends ServerApplication
 	@Override
 	protected void init() 
 	{
-		//this.setGui(new GuiLogin(this));
-	}
-	
-	public void update(double delta)
-	{
-		
-	}
-	
-	public void render(double delta)
-	{
-		
+		this.setGui(new ServerGui(this));
 	}
 
 	@Override

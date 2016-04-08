@@ -1,6 +1,8 @@
 package com.polaris.engine.network;
 
-import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.LinkedHashMap;
@@ -12,8 +14,9 @@ public abstract class Packet
 	
 	static
 	{
-		addPacket(PacketReceiveLock.class);
-		addPacket(PacketRequestLock.class);
+		addPacket(PacketRSA.class);
+		addPacket(PacketAES.class);
+		addPacket(PacketSecure.class);
 	}
 	
 	private short packetHeader = 0;
@@ -39,10 +42,11 @@ public abstract class Packet
 				break;
 			}
 		}
-		Constructor<? extends Packet> packetInstance = packetClass.getConstructor(ByteArrayOutputStream.class);
-		ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
-		dataStream.write(data);
-		return packetInstance.newInstance(dataStream);
+		Constructor<? extends Packet> packetInstance = packetClass.getConstructor();
+		DataInputStream dataStream = new DataInputStream(new ByteArrayInputStream(data));
+		Packet p = packetInstance.newInstance();
+		p.copy(dataStream);
+		return p;
 	}
 	
 	public Packet() 
@@ -50,14 +54,9 @@ public abstract class Packet
 		packetHeader = getPacketHeader(this);
 	}
 	
-	public Packet(ByteArrayOutputStream data)
-	{
-		copy(data);
-	}
-
-	public abstract void writeData(ByteArrayOutputStream output);
+	public abstract void writeData(DataOutputStream output) throws IOException;
 	
-	public abstract void copy(ByteArrayOutputStream data);
+	public abstract void copy(DataInputStream data) throws IOException;
 	
 	public abstract void handle(Network network);
 

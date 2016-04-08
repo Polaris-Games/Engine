@@ -1,14 +1,7 @@
 package com.polaris.engine;
 
-import static com.polaris.engine.render.Window.gl3d;
 import static org.lwjgl.opengl.GL11.glRotatef;
 import static org.lwjgl.opengl.GL11.glTranslatef;
-
-import java.nio.FloatBuffer;
-
-import org.lwjgl.BufferUtils;
-
-import com.polaris.engine.render.OpenGL;
 
 public class Camera 
 {
