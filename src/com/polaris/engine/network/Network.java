@@ -10,25 +10,28 @@ import java.net.SocketException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.ShortBufferException;
+
+import org.apache.commons.codec.binary.Base64;
 
 public abstract class Network
 {	
 	private ConcurrentLinkedQueue<Packet> packets;
-	
+
 	protected Socket socket;
 	private DataInputStream inputStream;
 	private DataOutputStream outputStream;
-	
+
 	protected Cipher encrypt;
 	protected Cipher decrypt;
-	
+
 	protected LinkedBlockingQueue<Packet> packetsToSend;
-	
+
 	private boolean isConnected = true;
-	
+
 	public Network()
 	{
 		packetsToSend = new LinkedBlockingQueue<Packet>();
@@ -44,7 +47,7 @@ public abstract class Network
 			inputStream = new DataInputStream(socket.getInputStream());
 			outputStream = new DataOutputStream(socket.getOutputStream());
 			outputStream.flush();
-			
+
 			if(inputStream == null || outputStream == null)
 			{
 				socket.close();
@@ -56,7 +59,7 @@ public abstract class Network
 			throw new IOException("");
 		}
 	}
-	
+
 	public void validate()
 	{
 		new Thread()
@@ -118,7 +121,7 @@ public abstract class Network
 			}
 		}.start();
 	}
-	
+
 	public void update(double delta)
 	{
 		Packet nextPacket = null;
@@ -127,7 +130,7 @@ public abstract class Network
 			nextPacket.handle(this);
 		}
 	}
-	
+
 	public void sendPacket(Packet packetToSend)
 	{
 		try 
@@ -139,65 +142,65 @@ public abstract class Network
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void sendSecurePacket(Packet packetToSend)
 	{
 		try 
 		{
 			PacketSecure securePacket = null;
+
+			ByteArrayOutputStream dataToSecure = new ByteArrayOutputStream();
 			ByteArrayOutputStream data = new ByteArrayOutputStream();
-			ByteArrayOutputStream content = new ByteArrayOutputStream();
-			DataOutputStream dataStream = new DataOutputStream(content);
-			
-			packetToSend.writeData(dataStream);
-			dataStream = new DataOutputStream(data);
+			DataOutputStream secureStream = new DataOutputStream(dataToSecure);
+			DataOutputStream dataStream = new DataOutputStream(data);
+
+			packetToSend.writeData(secureStream);
+
 			dataStream.writeShort(packetToSend.getHeader());
-			dataStream.writeInt(content.size());
-			content.writeTo(dataStream);
-			
-			content.flush();
-			
-			CipherOutputStream secureStream = new CipherOutputStream(content, encrypt);
-			secureStream.write(data.toByteArray());
-			securePacket = new PacketSecure(content.toByteArray());
-			
+			dataStream.writeInt(dataToSecure.size());
+			dataStream.write(dataToSecure.toByteArray());
+
+			dataToSecure = new ByteArrayOutputStream();
+			secureStream = new DataOutputStream(dataToSecure);
+			secureStream.writeUTF(new String(Base64.encodeBase64(encrypt.doFinal(data.toByteArray()))));
+
+			securePacket = new PacketSecure(dataToSecure.toByteArray());
+
 			packetsToSend.put(securePacket);
 			secureStream.close();
 			dataStream.close();
-			content.close();
 		}
-		catch (IOException | InterruptedException e) 
+		catch (IOException | InterruptedException | IllegalBlockSizeException | BadPaddingException e) 
 		{
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void decryptPacket(PacketSecure packetSecure) 
 	{
-		CipherInputStream inputStream = new CipherInputStream(new ByteArrayInputStream(packetSecure.getEncoded()), decrypt);
 		try 
 		{
-			byte[] data = new byte[inputStream.available()];
-			inputStream.read(data);
-			DataInputStream dataStream = new DataInputStream(new ByteArrayInputStream(data));
-			int packet = dataStream.readShort();
-			data = new byte[dataStream.readInt()];
-			dataStream.readFully(data);
-			Packet p = Packet.wrap(packet, data);
-			p.handle(this);
-			inputStream.close();
+			DataInputStream inputStream = new DataInputStream(new ByteArrayInputStream(packetSecure.getEncoded()));
+			byte[] data = Base64.decodeBase64(inputStream.readUTF());
+			inputStream = new DataInputStream(new ByteArrayInputStream(decrypt.doFinal(data)));
+			
+			int packet = inputStream.readShort();
+			data = new byte[inputStream.readInt()];
+			inputStream.readFully(data);
+			Packet.wrap(packet, data).handle(this);
 		} 
-		catch (IOException | ReflectiveOperationException e1)
+		catch (IOException | ReflectiveOperationException | IllegalBlockSizeException | BadPaddingException e1)
 		{
 			e1.printStackTrace();
 		}
+
 	}
-	
+
 	public void invalidate() throws IOException 
 	{
 		socket.close();
 	}
-	
+
 	public boolean isConnected()
 	{
 		return isConnected;

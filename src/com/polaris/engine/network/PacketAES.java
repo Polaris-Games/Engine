@@ -37,7 +37,7 @@ public class PacketAES extends Packet
 	@Override
 	public void handle(Network network) 
 	{
-		((ServerNetwork)network).setAESKey(encoded);
+		
 	}
 	
 	

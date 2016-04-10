@@ -5,12 +5,14 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public abstract class Packet
 {
 	
-	private static LinkedHashMap<Class<? extends Packet>, Short> packetMap = new LinkedHashMap<Class<? extends Packet>, Short>();
+	private static LinkedList<Class<? extends Packet>> packetList = new LinkedList<Class<? extends Packet>>();
 	
 	static
 	{
@@ -23,25 +25,39 @@ public abstract class Packet
 	
 	public static void addPacket(Class<? extends Packet> packet)
 	{
-		packetMap.put(packet, (short) packetMap.size());
+		packetList.add(packet);
+	}
+	
+	public static void sortPackets()
+	{
+		List<Class<? extends Packet>> sortedList = new ArrayList<Class<? extends Packet>>();
+		for(Class<? extends Packet> packetCL : packetList)
+		{
+			boolean placed = false;
+			for(int i = 0; i < sortedList.size(); i++)
+			{
+				if(sortedList.get(i).toString().compareTo(packetCL.toString()) < 0)
+				{
+					placed = true;
+					sortedList.add(i, packetCL);
+					i = sortedList.size();
+				}
+			}
+			if(!placed)
+			{
+				sortedList.add(packetCL);
+			}
+		}
 	}
 	
 	public static short getPacketHeader(Packet packet)
 	{
-		return packetMap.get(packet.getClass());
+		return (short) packetList.indexOf(packet.getClass());
 	}
 	
 	public static Packet wrap(int packet, byte[] data) throws ReflectiveOperationException, IOException 
 	{
-		Class<? extends Packet> packetClass = null;
-		for(Class<? extends Packet> packetCl : packetMap.keySet())
-		{
-			if(packetMap.get(packetCl) == packet)
-			{
-				packetClass = packetCl;
-				break;
-			}
-		}
+		Class<? extends Packet> packetClass = packetList.get(packet);
 		Constructor<? extends Packet> packetInstance = packetClass.getConstructor();
 		DataInputStream dataStream = new DataInputStream(new ByteArrayInputStream(data));
 		Packet p = packetInstance.newInstance();

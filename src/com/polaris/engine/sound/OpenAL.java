@@ -6,8 +6,6 @@ import java.util.List;
 import org.lwjgl.openal.ALContext;
 import org.lwjgl.openal.ALDevice;
 
-import com.polaris.engine.Application;
-
 
 public class OpenAL
 {
@@ -40,12 +38,6 @@ public class OpenAL
 	}
 
 	public boolean isRunning = true;
-	private Application app;
-
-	public OpenAL(Application application)
-	{
-		app = application;
-	}
 
 	public void run()
 	{

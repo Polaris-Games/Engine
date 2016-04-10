@@ -5,8 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.security.interfaces.RSAPublicKey;
 
-import com.polaris.engine.ServerApplication;
-
 public class PacketRSA extends Packet
 {
 
@@ -48,15 +46,7 @@ public class PacketRSA extends Packet
 	@Override
 	public void handle(Network network) 
 	{
-		if(network instanceof ClientNetwork)
-		{
-			((ClientNetwork)network).createAESKey(encoded, aesBitLength);
-		}
-		else
-		{
-			ServerApplication server = ((ServerNetwork)network).getServer();
-			network.sendPacket(new PacketRSA(server.getPublicKey(), server.getAESLength()));
-		}
+		
 	}
 
 }

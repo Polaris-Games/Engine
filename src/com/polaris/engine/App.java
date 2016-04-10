@@ -37,7 +37,7 @@ import com.polaris.engine.render.OpenGL;
 import com.polaris.engine.render.Window;
 import com.polaris.engine.sound.OpenAL;
 
-public abstract class App
+public abstract class App 
 {
 	
 	/**
@@ -346,7 +346,7 @@ public abstract class App
 	{
 		return "resources";
 	}
-
+	
 	public Gui getCurrentScreen()
 	{
 		return currentGui;

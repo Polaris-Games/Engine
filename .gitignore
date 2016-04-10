@@ -2,8 +2,6 @@
 *.classpath
 .settings/
 .project
-src/com/polaris/steve/
-resources/
 *.class
 
 # Mobile Tools for Java (J2ME)
