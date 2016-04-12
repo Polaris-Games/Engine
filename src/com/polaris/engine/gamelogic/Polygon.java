@@ -1,6 +1,6 @@
 package com.polaris.engine.gamelogic;
 
-public class Polygon extends Shape
+public class Polygon extends Shape2D
 {
 
 	@Override

@@ -1,6 +1,6 @@
 package com.polaris.engine.gamelogic;
 
-public class PixelBounds extends Shape
+public class PixelBounds extends Shape2D
 {
 
 	@Override

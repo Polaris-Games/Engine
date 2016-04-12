@@ -1,6 +1,6 @@
 package com.polaris.engine.gamelogic;
 
-public class Ellipsoid extends Shape
+public class Ellipsoid extends Shape3D
 {
 
 	@Override

@@ -1,6 +1,6 @@
 package com.polaris.engine.gamelogic;
 
-public class ModelBounds extends Shape
+public class ModelBounds extends Shape3D
 {
 
 	@Override

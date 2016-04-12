@@ -1,6 +1,6 @@
 package com.polaris.engine.gamelogic;
 
-public class Cube extends Shape
+public class Cube extends Shape3D
 {
 
 	@Override

@@ -2,14 +2,10 @@ package com.polaris.engine.gui;
 
 import static com.polaris.engine.render.Window.gl2d;
 
-import com.polaris.engine.Camera;
-
 public abstract class Gui
 {
 	protected double ticksExisted = 0;
 	protected Gui parent;
-
-	protected Camera camera;
 	
 	public Gui()
 	{
@@ -55,11 +51,6 @@ public abstract class Gui
 	protected Gui getParent()
 	{
 		return parent;
-	}
-
-	public Camera getCamera()
-	{
-		return camera;
 	}
 
 }
