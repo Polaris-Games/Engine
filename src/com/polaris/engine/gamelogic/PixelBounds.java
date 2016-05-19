@@ -1,12 +1,14 @@
 package com.polaris.engine.gamelogic;
 
+import com.polaris.engine.util.Helper;
+
 public class PixelBounds extends Shape2D
 {
 
 	@Override
 	public Axis[] getAxes() 
 	{
-		return null;
+		return new Axis[] {new Axis(rotation), new Axis(rotation + Helper.HALFPI)};
 	}
 
 	@Override

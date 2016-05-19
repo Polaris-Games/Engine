@@ -22,7 +22,6 @@ public class Settings
 		return modelDirectory;
 	}
 
-
 	public static File getTextureDirectory() 
 	{
 		return textureDirectory;

@@ -81,9 +81,9 @@ public abstract class App
 		}
 
 		init();
-		setTime(0);
 		//OpenAL.initAL();
 		OpenGL.glDefaults();
+		setTime(0);
 		while(shouldClose())
 		{
 			double delta = getTimeAndReset();

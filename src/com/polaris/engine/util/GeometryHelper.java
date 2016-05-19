@@ -91,44 +91,32 @@ public class GeometryHelper
 	
 	public static Vector2d center(Vector2d ... vectors)
 	{
-		assert vectors.length > 1;
-		double xmin = vectors[0].x;
-		double xmax = vectors[0].x;
-		double ymin = vectors[0].y;
-		double ymax = vectors[0].y;
+		double totalX = vectors[0].x;
+		double totalY = vectors[0].y;
 		
 		for(int i = 1; i < vectors.length; i++)
 		{
-			xmin = Math.min(xmin, vectors[i].x);
-			xmax = Math.max(xmax, vectors[i].x);
-			ymin = Math.min(ymin, vectors[i].y);
-			ymax = Math.max(ymax, vectors[i].y);
+			totalX += vectors[i].x;
+			totalY += vectors[i].y;
 		}
 		
-		return new Vector2d((xmin + xmax) / 2, (ymin + ymax) / 2);
+		return new Vector2d(totalX / vectors.length, totalY / vectors.length);
 	}
 
 	public static Vector3d center(Vector3d ... vectors)
 	{
-		assert vectors.length > 1;
-		double xmin = vectors[0].x;
-		double xmax = vectors[0].x;
-		double ymin = vectors[0].y;
-		double ymax = vectors[0].y;
-		double zmin = vectors[0].z;
-		double zmax = vectors[0].z;
+		double totalX = vectors[0].x;
+		double totalY = vectors[0].y;
+		double totalZ = vectors[0].z;
 		
 		for(int i = 1; i < vectors.length; i++)
 		{
-			xmin = Math.min(xmin, vectors[i].x);
-			xmax = Math.max(xmax, vectors[i].x);
-			ymin = Math.min(ymin, vectors[i].y);
-			ymax = Math.max(ymax, vectors[i].y);
-			zmin = Math.min(zmin, vectors[i].z);
-			zmax = Math.max(zmax, vectors[i].z);
+			totalX += vectors[i].x;
+			totalY += vectors[i].y;
+			totalZ += vectors[i].z;
 		}
 		
-		return new Vector3d((xmin + xmax) / 2, (ymin + ymax) / 2, (zmin + zmax) / 2);
+		return new Vector3d(totalX / vectors.length, totalY / vectors.length, totalZ / vectors.length);
 	}
 	
 }
